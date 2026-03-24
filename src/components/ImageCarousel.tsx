@@ -113,11 +113,11 @@ export function Lightbox({
       )}
 
       {/* Image */}
-      <div className="max-w-[95vw] max-h-[90vh] px-16" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-center w-[95vw] h-[90vh]" onClick={(e) => e.stopPropagation()}>
         <img
           src={images[currentIndex]}
           alt={`Imagem ${currentIndex + 1} de ${total}`}
-          className="max-w-full max-h-[90vh] object-contain rounded-lg"
+          className="max-w-[95vw] max-h-[90vh] object-contain"
         />
       </div>
 
