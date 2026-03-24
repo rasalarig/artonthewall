@@ -58,14 +58,13 @@ function ArtistCardCarousel({ slides }: { slides: CarouselSlide[] }) {
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {slides.map((slide, idx) => (
-            <div key={idx} className="h-full w-full flex-shrink-0 bg-neutral-900 flex items-center justify-center">
-              <img
-                src={slide.image}
-                alt={slide.title}
-                className="h-full w-full object-contain cursor-pointer"
-                onClick={openLightbox}
-              />
-            </div>
+            <img
+              key={idx}
+              src={slide.image}
+              alt={slide.title}
+              className="h-full w-full flex-shrink-0 object-cover cursor-pointer"
+              onClick={openLightbox}
+            />
           ))}
         </div>
 

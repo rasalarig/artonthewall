@@ -113,11 +113,11 @@ export function Lightbox({
       )}
 
       {/* Image */}
-      <div className="max-w-4xl max-h-[85vh] px-16" onClick={(e) => e.stopPropagation()}>
+      <div className="max-w-[95vw] max-h-[90vh] px-16" onClick={(e) => e.stopPropagation()}>
         <img
           src={images[currentIndex]}
           alt={`Imagem ${currentIndex + 1} de ${total}`}
-          className="max-w-full max-h-[85vh] object-contain rounded-lg"
+          className="max-w-full max-h-[90vh] object-contain rounded-lg"
         />
       </div>
 
@@ -174,14 +174,13 @@ export function ImageCarousel({
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {images.map((img, idx) => (
-            <div key={idx} className="h-full w-full flex-shrink-0 bg-neutral-900 flex items-center justify-center">
-              <img
-                src={img}
-                alt={`${alt} ${idx + 1}`}
-                className="h-full w-full object-contain"
-                onClick={() => setLightboxOpen(true)}
-              />
-            </div>
+            <img
+              key={idx}
+              src={img}
+              alt={`${alt} ${idx + 1}`}
+              className="h-full w-full flex-shrink-0 object-cover"
+              onClick={() => setLightboxOpen(true)}
+            />
           ))}
         </div>
 
