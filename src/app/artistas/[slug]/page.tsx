@@ -169,7 +169,7 @@ export default function ArtistDetailPage({
               ))}
 
               {/* Works count */}
-              <span className="text-sm text-muted ml-2 font-accent">
+              <span className="text-sm text-muted ml-2 font-body">
                 {works.length} {works.length === 1 ? "obra" : "obras"}
               </span>
             </div>

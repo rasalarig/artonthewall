@@ -65,7 +65,7 @@ export default function ArtistasPage() {
               ARTISTAS
             </h1>
             <p
-              className="text-muted text-lg font-accent"
+              className="text-muted text-lg font-body"
               style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.15s forwards" }}
             >
               {artists.length} artistas da expo coletiva

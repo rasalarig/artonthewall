@@ -204,7 +204,7 @@ export default function CadastrarPage() {
           <h1 className="text-4xl md:text-5xl font-heading tracking-wide text-neon-cyan mb-3 text-spray">
             CADASTRAR
           </h1>
-          <p className="text-muted text-lg font-accent">
+          <p className="text-muted text-lg font-body">
             Adicione novos artistas e obras ao catalogo
           </p>
         </div>

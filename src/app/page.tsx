@@ -172,7 +172,7 @@ export default function Home() {
 
         {/* Title with staggered letter animation */}
         <h1 className="relative z-10 text-center select-none">
-          <span className="block text-sm md:text-base tracking-[0.4em] uppercase text-neon-pink/70 font-accent mb-4"
+          <span className="block text-sm md:text-base tracking-[0.4em] uppercase text-neon-pink/70 font-body mb-4"
             style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
           >
             Expo Coletiva
@@ -198,7 +198,7 @@ export default function Home() {
             ))}
           </span>
           <span
-            className="block mt-6 text-lg md:text-xl tracking-widest text-neon-cyan font-accent"
+            className="block mt-6 text-lg md:text-xl tracking-widest text-neon-cyan font-body"
             style={{ opacity: 0, animation: "fadeInUp 0.8s ease-out 1.2s forwards" }}
           >
             Expo Coletiva &bull; Arte Urbana &bull; Maio 2024
@@ -245,17 +245,17 @@ export default function Home() {
         <div className="relative z-10 max-w-5xl mx-auto px-6 flex justify-center items-center gap-8 md:gap-14">
           <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.5s forwards" }}>
             <span className="block text-3xl md:text-4xl font-heading text-neon-pink">{artists.length}</span>
-            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-accent">Artistas</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-body">Artistas</span>
           </div>
           <span className="text-neon-cyan/30 text-2xl font-thin select-none">/</span>
           <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.7s forwards" }}>
             <span className="block text-3xl md:text-4xl font-heading text-neon-cyan">{totalWorks}+</span>
-            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-accent">Obras</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-body">Obras</span>
           </div>
           <span className="text-neon-cyan/30 text-2xl font-thin select-none">/</span>
           <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.9s forwards" }}>
             <span className="block text-lg md:text-xl font-heading text-neon-green">Graffiti</span>
-            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-accent">Arte Urbana</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-body">Arte Urbana</span>
           </div>
         </div>
       </section>
@@ -286,7 +286,7 @@ export default function Home() {
               Artistas em Destaque
             </h2>
             <p
-              className="text-center text-muted mb-14 text-sm md:text-base font-accent"
+              className="text-center text-muted mb-14 text-sm md:text-base font-body"
               style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
             >
               Os talentos que transformam paredes em galerias
@@ -326,7 +326,7 @@ export default function Home() {
             Obras da Exposi&ccedil;&atilde;o
           </h2>
           <p
-            className="text-center text-muted text-sm md:text-base font-accent"
+            className="text-center text-muted text-sm md:text-base font-body"
             style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
           >
             Arraste para explorar
@@ -376,7 +376,7 @@ export default function Home() {
             Explore o Muro
           </h2>
           <p
-            className="text-muted mb-12 text-lg font-accent"
+            className="text-muted mb-12 text-lg font-body"
             style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
           >
             Navegue por todos os artistas e obras da exposi&ccedil;&atilde;o

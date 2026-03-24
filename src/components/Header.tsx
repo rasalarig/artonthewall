@@ -153,7 +153,7 @@ export default function Header() {
         {/* Neon accent at bottom of mobile menu */}
         <div className="mt-auto px-6 pb-8">
           <div className="h-px bg-gradient-to-r from-neon-pink via-neon-cyan to-transparent" />
-          <p className="mt-4 font-accent text-xs tracking-widest text-muted uppercase">
+          <p className="mt-4 font-body text-xs tracking-widest text-muted uppercase">
             Expo Coletiva 2024
           </p>
         </div>

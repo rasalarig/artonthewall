@@ -15,8 +15,7 @@
   --color-neon-purple: #bf5af2;
   --color-muted: #777777;
   --color-concrete: #1e1e1e;
-  --font-heading: var(--font-permanent-marker, 'Permanent Marker', cursive);
-  --font-accent: var(--font-russo-one, 'Russo One', sans-serif);
+  --font-heading: var(--font-playfair, 'Playfair Display', Georgia, serif);
   --font-body: var(--font-inter, Inter, sans-serif);
 }
 
@@ -37,7 +36,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), cursive;
+  font-family: var(--font-heading), Georgia, serif;
 }
 
 /* ------------------------------------------------------------------ */
@@ -196,7 +195,7 @@ body::before {
 /*  Spray paint text shadow                                            */
 /* ------------------------------------------------------------------ */
 .text-spray {
-  text-shadow: 2px 2px 0px rgba(0,0,0,0.8), 0 0 20px currentColor;
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.5);
 }
 
 /* ------------------------------------------------------------------ */

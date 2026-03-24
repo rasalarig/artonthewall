@@ -1,19 +1,11 @@
 import type { Metadata } from "next";
-import { Permanent_Marker, Russo_One, Inter } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "./globals.css";
 
-const permanentMarker = Permanent_Marker({
-  variable: "--font-permanent-marker",
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const russoOne = Russo_One({
-  variable: "--font-russo-one",
-  weight: "400",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
 });
@@ -38,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${permanentMarker.variable} ${russoOne.variable} ${inter.variable} h-full antialiased`}
+      className={`${playfair.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Header />

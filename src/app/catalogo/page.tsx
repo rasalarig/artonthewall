@@ -83,7 +83,7 @@ export default function CatalogoPage() {
         <h1 className="font-heading text-4xl tracking-wide text-neon-cyan sm:text-5xl text-spray">
           CATALOGO
         </h1>
-        <p className="mt-3 text-muted font-accent">
+        <p className="mt-3 text-muted font-body">
           {artworks.length} {artworks.length === 1 ? "obra" : "obras"} no acervo
         </p>
       </header>
