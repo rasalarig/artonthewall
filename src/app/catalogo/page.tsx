@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages } from "@/lib/catalog";
+import { ImageCarousel } from "@/components/ImageCarousel";
 
 /* ------------------------------------------------------------------ */
 /*  Price range helpers                                                */
@@ -168,7 +169,6 @@ export default function CatalogoPage() {
         <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
           {filtered.map((work, index) => {
             const workImages = getWorkImages(work);
-            const firstImage = workImages.length > 0 ? workImages[0] : null;
             /* Vary placeholder height based on index for masonry effect */
             const heights = [180, 240, 200, 280, 220, 260];
             const placeholderH = heights[index % heights.length];
@@ -182,13 +182,12 @@ export default function CatalogoPage() {
                   animation: `fadeInUp 0.5s ease-out ${Math.min(index * 80, 800)}ms both`,
                 }}
               >
-                {/* First image (no gradient placeholder when no photo) */}
-                {firstImage && (
-                  <img
-                    src={firstImage}
+                {/* Image carousel */}
+                {workImages.length > 0 && (
+                  <ImageCarousel
+                    images={workImages}
                     alt={work.title}
-                    className="w-full object-cover"
-                    style={{ height: placeholderH }}
+                    height={placeholderH}
                   />
                 )}
 

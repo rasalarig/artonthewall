@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages } from "@/lib/catalog";
+import { ImageCarousel } from "@/components/ImageCarousel";
 import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
@@ -523,21 +524,13 @@ export default function ArtistDetailPage({
                       />
                     ) : (
                       <>
-                        {/* Image gallery (horizontal scroll if multiple) */}
+                        {/* Image carousel */}
                         {workImages.length > 0 && (
-                          <div
-                            className={`w-full overflow-x-auto ${workImages.length > 1 ? "flex gap-0 snap-x snap-mandatory" : ""}`}
-                            style={{ height: placeholderH }}
-                          >
-                            {workImages.map((img, imgIdx) => (
-                              <img
-                                key={imgIdx}
-                                src={img}
-                                alt={`${work.title} ${imgIdx + 1}`}
-                                className={`h-full object-cover transition-transform duration-700 group-hover:scale-105 ${workImages.length > 1 ? "flex-shrink-0 w-full snap-center" : "w-full"}`}
-                              />
-                            ))}
-                          </div>
+                          <ImageCarousel
+                            images={workImages}
+                            alt={work.title}
+                            height={placeholderH}
+                          />
                         )}
 
                         {/* Content */}
