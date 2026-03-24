@@ -174,13 +174,14 @@ export function ImageCarousel({
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {images.map((img, idx) => (
-            <img
-              key={idx}
-              src={img}
-              alt={`${alt} ${idx + 1}`}
-              className="h-full w-full flex-shrink-0 object-cover"
-              onClick={() => setLightboxOpen(true)}
-            />
+            <div key={idx} className="h-full w-full flex-shrink-0 bg-neutral-900 flex items-center justify-center">
+              <img
+                src={img}
+                alt={`${alt} ${idx + 1}`}
+                className="h-full w-full object-contain"
+                onClick={() => setLightboxOpen(true)}
+              />
+            </div>
           ))}
         </div>
 

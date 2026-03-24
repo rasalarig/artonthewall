@@ -502,8 +502,6 @@ export default function ArtistDetailPage({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {works.map((work, index) => {
                 const workImages = getWorkImages(work);
-                const heights = [200, 260, 220, 280];
-                const placeholderH = heights[index % heights.length];
                 const delay = 0.3 + index * 0.08;
                 const isEditing = editingWorkId === work.id;
 
@@ -529,7 +527,7 @@ export default function ArtistDetailPage({
                           <ImageCarousel
                             images={workImages}
                             alt={work.title}
-                            height={placeholderH}
+                            height={260}
                           />
                         )}
 

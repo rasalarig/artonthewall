@@ -169,9 +169,7 @@ export default function CatalogoPage() {
         <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
           {filtered.map((work, index) => {
             const workImages = getWorkImages(work);
-            /* Vary placeholder height based on index for masonry effect */
-            const heights = [180, 240, 200, 280, 220, 260];
-            const placeholderH = heights[index % heights.length];
+            const placeholderH = 260;
 
             return (
               <article
