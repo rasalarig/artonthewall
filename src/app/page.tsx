@@ -1,65 +1,494 @@
-import Image from "next/image";
+"use client";
 
+import Link from "next/link";
+import { useCatalog } from "@/hooks/useCatalog";
+import { formatBRL } from "@/lib/catalog";
+import type { Artist, Artwork } from "@/types";
+
+/* ------------------------------------------------------------------ */
+/*  Helper: deterministic hash from string -> unique gradient colors   */
+/* ------------------------------------------------------------------ */
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+function artistGradient(name: string): string {
+  const h = hashStr(name);
+  const hue1 = h % 360;
+  const hue2 = (h * 7 + 120) % 360;
+  const hue3 = (h * 13 + 240) % 360;
+  return `linear-gradient(135deg, hsl(${hue1} 60% 15%) 0%, hsl(${hue2} 50% 20%) 50%, hsl(${hue3} 40% 12%) 100%)`;
+}
+
+function artworkGradient(id: string): string {
+  const h = hashStr(id);
+  const hue1 = (h * 3) % 360;
+  const hue2 = (h * 11 + 90) % 360;
+  return `linear-gradient(160deg, hsl(${hue1} 55% 18%) 0%, hsl(${hue2} 45% 25%) 100%)`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  CSS Keyframes (injected once via <style>)                          */
+/* ------------------------------------------------------------------ */
+const keyframes = `
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes letterReveal {
+  0%   { opacity: 0; transform: translateY(40px) scale(0.8); filter: blur(8px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212,168,83,0.15); }
+  50%      { box-shadow: 0 0 40px rgba(212,168,83,0.35); }
+}
+@keyframes drift {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  33%  { transform: translate(30px, -20px) rotate(2deg); }
+  66%  { transform: translate(-20px, 15px) rotate(-1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+@keyframes scroll-hint {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50%      { opacity: 0.4; transform: translateY(12px); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes scaleReveal {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+`;
+
+/* ------------------------------------------------------------------ */
+/*  Page Component                                                     */
+/* ------------------------------------------------------------------ */
 export default function Home() {
+  const { artists, artworks } = useCatalog();
+
+  // Top 6 artists by number of works
+  const featured = [...artists]
+    .sort((a, b) => b.works.length - a.works.length)
+    .slice(0, 6);
+
+  const totalWorks = artworks.length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      <style dangerouslySetInnerHTML={{ __html: keyframes }} />
+
+      {/* ============================================================ */}
+      {/*  HERO                                                        */}
+      {/* ============================================================ */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+        {/* Abstract background shapes */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* Gradient base */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-surface to-background" />
+
+          {/* Floating abstract shapes with varied speeds for parallax feel */}
+          <div
+            className="absolute top-[10%] left-[15%] w-64 h-64 rounded-full opacity-10"
+            style={{
+              background: "radial-gradient(circle, #d4a853 0%, transparent 70%)",
+              animation: "drift 20s ease-in-out infinite",
+            }}
+          />
+          <div
+            className="absolute top-[60%] right-[10%] w-96 h-96 rounded-full"
+            style={{
+              background: "radial-gradient(circle, #e8c875 0%, transparent 70%)",
+              animation: "drift 30s ease-in-out infinite reverse",
+              opacity: 0.06,
+            }}
+          />
+          <div
+            className="absolute top-[30%] right-[30%] w-48 h-48 opacity-10"
+            style={{
+              background: "linear-gradient(45deg, transparent 30%, #d4a85320 50%, transparent 70%)",
+              animation: "drift 15s ease-in-out infinite 3s",
+              transform: "rotate(45deg)",
+            }}
+          />
+          {/* Extra slow-drifting shape for depth */}
+          <div
+            className="absolute top-[50%] left-[60%] w-72 h-72 rounded-full"
+            style={{
+              background: "radial-gradient(circle, #b8923e 0%, transparent 70%)",
+              animation: "drift 35s ease-in-out infinite 5s",
+              opacity: 0.04,
+            }}
+          />
+
+          {/* Horizontal accent lines */}
+          <div className="absolute top-1/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
+          <div className="absolute top-2/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/5 to-transparent" />
+
+          {/* Diagonal decorative line */}
+          <div
+            className="absolute top-0 right-[20%] w-px h-[140%] bg-gradient-to-b from-transparent via-gold/10 to-transparent"
+            style={{ transform: "rotate(15deg)", transformOrigin: "top center" }}
+          />
+          <div
+            className="absolute top-0 left-[25%] w-px h-[130%] bg-gradient-to-b from-transparent via-gold/5 to-transparent"
+            style={{ transform: "rotate(-12deg)", transformOrigin: "top center" }}
+          />
+        </div>
+
+        {/* Title with staggered letter animation */}
+        <h1 className="relative z-10 text-center select-none">
+          <span className="block text-sm md:text-base tracking-[0.4em] uppercase text-gold/60 font-body mb-4"
+            style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
+          >
+            Expo Coletiva
+          </span>
+          <span className="flex flex-wrap justify-center gap-x-[0.15em] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-heading font-bold tracking-tight">
+            {"ART ON THE WALL".split("").map((char, i) => (
+              <span
+                key={i}
+                className={char === " " ? "w-[0.3em]" : "inline-block text-foreground"}
+                style={
+                  char !== " "
+                    ? {
+                        opacity: 0,
+                        animation: `letterReveal 0.7s ease-out forwards`,
+                        animationDelay: `${0.3 + i * 0.05}s`,
+                      }
+                    : undefined
+                }
+              >
+                {char}
+              </span>
+            ))}
+          </span>
+          <span
+            className="block mt-6 text-lg md:text-xl tracking-widest text-gold font-body"
+            style={{ opacity: 0, animation: "fadeInUp 0.8s ease-out 1.2s forwards" }}
+          >
+            Expo Coletiva &bull; Maio 2024
+          </span>
+        </h1>
+
+        {/* Scroll indicator */}
+        <div
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted text-xs tracking-widest"
+          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 2s forwards" }}
+        >
+          <span className="uppercase">Scroll</span>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ animation: "scroll-hint 2s ease-in-out infinite" }}
+          >
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/*  STATS BAR                                                   */}
+      {/* ============================================================ */}
+      <section
+        className="relative py-8 border-y border-gold/20"
+        style={{
+          opacity: 0,
+          animation: "fadeInUp 0.8s ease-out 0.2s forwards",
+          animationTimeline: undefined,
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{ animation: "pulse-glow 4s ease-in-out infinite" }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <div className="relative z-10 max-w-5xl mx-auto px-6 flex justify-center items-center gap-8 md:gap-14">
+          <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.5s forwards" }}>
+            <span className="block text-3xl md:text-4xl font-heading font-bold text-gold">{artists.length}</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted">Artistas</span>
+          </div>
+          <span className="text-gold/30 text-2xl font-thin select-none">/</span>
+          <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.7s forwards" }}>
+            <span className="block text-3xl md:text-4xl font-heading font-bold text-gold">{totalWorks}+</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted">Obras</span>
+          </div>
+          <span className="text-gold/30 text-2xl font-thin select-none">/</span>
+          <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.9s forwards" }}>
+            <span className="block text-lg md:text-xl font-heading font-bold text-gold">Graffiti</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted">Arte Urbana</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/*  FEATURED ARTISTS                                            */}
+      {/* ============================================================ */}
+      <section className="py-20 md:py-28 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative inline-flex flex-col items-center w-full">
+            {/* Decorative paint splash blob */}
+            <svg
+              className="absolute -top-8 -left-4 md:-left-8 w-24 h-24 md:w-32 md:h-32 opacity-[0.07] pointer-events-none"
+              viewBox="0 0 200 200"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ animation: "drift 12s ease-in-out infinite" }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <path
+                fill="#d4a853"
+                d="M45.3,-62.5C57.1,-53.8,64.1,-37.6,68.8,-21.1C73.5,-4.5,75.9,12.3,70.1,26.1C64.3,39.9,50.3,50.6,35.4,57.8C20.5,64.9,4.6,68.5,-12.2,68.1C-29,67.7,-46.7,63.3,-57.1,52.1C-67.5,40.9,-70.5,22.8,-71.6,5C-72.7,-12.7,-71.8,-30.2,-62.5,-41.5C-53.2,-52.9,-35.4,-58.1,-19.1,-63.1C-2.9,-68.1,11.8,-72.8,26.1,-70.5C40.5,-68.2,54.5,-59,45.3,-62.5Z"
+                transform="translate(100 100)"
+              />
+            </svg>
+            <h2
+              className="text-3xl md:text-5xl font-heading text-center mb-4 text-foreground"
+              style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.1s forwards" }}
             >
-              Learning
-            </a>{" "}
-            center.
+              Artistas em Destaque
+            </h2>
+            <p
+              className="text-center text-muted mb-14 text-sm md:text-base"
+              style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
+            >
+              Os talentos que transformam paredes em galerias
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featured.map((artist, i) => (
+              <ArtistCard key={artist.id} artist={artist} index={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/*  WORKS PREVIEW - horizontal scroll                           */}
+      {/* ============================================================ */}
+      <section className="py-20 md:py-28 bg-surface/50">
+        <div className="max-w-6xl mx-auto px-6 mb-10 relative">
+          {/* Decorative paint splash blob */}
+          <svg
+            className="absolute -top-6 right-0 md:right-12 w-20 h-20 md:w-28 md:h-28 opacity-[0.06] pointer-events-none"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ animation: "drift 15s ease-in-out infinite reverse" }}
+          >
+            <path
+              fill="#e8c875"
+              d="M39.5,-51.1C50.9,-44.3,59.5,-31.8,63.8,-17.8C68.1,-3.9,68.1,11.6,62.1,24C56.1,36.3,44.1,45.6,31.1,52.4C18.1,59.2,4.2,63.6,-10.9,62.8C-26,62,-42.3,56.1,-52.7,44.6C-63.1,33.1,-67.6,16,-66.4,0.7C-65.2,-14.7,-58.2,-28.4,-47.7,-35.3C-37.2,-42.3,-23.1,-42.5,-10.1,-45.4C2.9,-48.3,28.1,-57.9,39.5,-51.1Z"
+              transform="translate(100 100)"
+            />
+          </svg>
+          <h2
+            className="text-3xl md:text-5xl font-heading text-center mb-4"
+            style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.1s forwards" }}
+          >
+            Obras da Exposi&ccedil;&atilde;o
+          </h2>
+          <p
+            className="text-center text-muted text-sm md:text-base"
+            style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
+          >
+            Arraste para explorar
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div
+          className="flex gap-5 overflow-x-auto px-6 pb-4 cursor-grab active:cursor-grabbing"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {/* left spacer to center content on wide screens */}
+          <div className="shrink-0 w-[max(0px,calc((100vw-72rem)/2))]" />
+
+          {artworks.slice(0, 20).map((work, i) => (
+            <WorkCard key={work.id} work={work} index={i} />
+          ))}
+
+          {/* right spacer */}
+          <div className="shrink-0 w-[max(0px,calc((100vw-72rem)/2))]" />
         </div>
-      </main>
+      </section>
+
+      {/* ============================================================ */}
+      {/*  CTA                                                         */}
+      {/* ============================================================ */}
+      <section className="relative py-28 md:py-36 px-6 overflow-hidden">
+        {/* Background glow effects */}
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(212,168,83,0.08) 0%, transparent 60%)",
+              animation: "pulse-glow 5s ease-in-out infinite",
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2
+            className="text-3xl md:text-5xl font-heading mb-6"
+            style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.1s forwards" }}
+          >
+            Explore o cat&aacute;logo completo
+          </h2>
+          <p
+            className="text-muted mb-12 text-lg"
+            style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
+          >
+            Navegue por todos os artistas e obras da exposi&ccedil;&atilde;o
+          </p>
+
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.4s forwards" }}
+          >
+            <Link
+              href="/catalogo"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gold text-background font-semibold rounded-lg text-lg transition-all duration-300 hover:bg-gold-light hover:scale-105 hover:shadow-[0_0_30px_rgba(212,168,83,0.3)]"
+            >
+              Ver Cat&aacute;logo
+            </Link>
+            <Link
+              href="/cadastrar"
+              className="inline-flex items-center justify-center px-8 py-4 border border-gold/40 text-gold font-semibold rounded-lg text-lg transition-all duration-300 hover:border-gold hover:bg-gold/10 hover:scale-105"
+            >
+              Cadastrar Artista
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                     */
+/* ------------------------------------------------------------------ */
+
+function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
+  const delay = 0.3 + index * 0.1;
+
+  return (
+    <Link
+      href={`/artistas/${artist.slug}`}
+      className="group relative block rounded-xl overflow-hidden border border-border transition-all duration-500 hover:border-gold/60 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(212,168,83,0.15)]"
+      style={{
+        opacity: 0,
+        animation: `fadeInUp 0.7s ease-out ${delay}s forwards`,
+      }}
+    >
+      {/* Abstract gradient background */}
+      <div
+        className="h-44 md:h-52 w-full relative"
+        style={{ background: artistGradient(artist.name) }}
+      >
+        {/* Decorative overlay shapes */}
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            background: `radial-gradient(ellipse at ${30 + (hashStr(artist.id) % 40)}% ${20 + (hashStr(artist.id) % 60)}%, rgba(212,168,83,0.3) 0%, transparent 50%)`,
+          }}
+        />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-surface to-transparent" />
+
+        {/* Works count badge */}
+        <span className="absolute top-4 right-4 bg-background/70 backdrop-blur-sm text-gold text-xs font-semibold px-3 py-1 rounded-full border border-gold/20">
+          {artist.works.length} {artist.works.length === 1 ? "obra" : "obras"}
+        </span>
+      </div>
+
+      <div className="p-5 bg-surface">
+        <h3 className="text-xl font-heading text-foreground mb-3 group-hover:text-gold transition-colors duration-300">
+          {artist.name}
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {artist.characteristics.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="text-xs px-2.5 py-1 rounded-full bg-surface-light text-muted border border-border"
+            >
+              {tag}
+            </span>
+          ))}
+          {artist.characteristics.length > 3 && (
+            <span className="text-xs px-2.5 py-1 rounded-full bg-surface-light text-muted border border-border">
+              +{artist.characteristics.length - 3}
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function WorkCard({
+  work,
+  index,
+}: {
+  work: Artwork & { artistName: string };
+  index: number;
+}) {
+  const delay = 0.15 + index * 0.05;
+
+  return (
+    <div
+      className="group shrink-0 w-64 md:w-72 rounded-xl overflow-hidden border border-border bg-surface transition-all duration-500 hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,168,83,0.12)]"
+      style={{
+        opacity: 0,
+        animation: `slideInLeft 0.6s ease-out ${delay}s forwards`,
+      }}
+    >
+      {/* Abstract artwork placeholder */}
+      <div
+        className="relative h-48 md:h-56 w-full overflow-hidden"
+        style={{ background: artworkGradient(work.id) }}
+      >
+        <div
+          className="absolute inset-0 opacity-15"
+          style={{
+            background: `conic-gradient(from ${hashStr(work.id) % 360}deg at 50% 50%, rgba(212,168,83,0.2) 0%, transparent 30%, rgba(232,200,117,0.1) 60%, transparent 100%)`,
+          }}
+        />
+
+        {/* Hover overlay with details */}
+        <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center">
+          <span className="text-gold text-sm font-semibold mb-1">{work.technique}</span>
+          <span className="text-muted text-xs">{work.size}</span>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h4 className="font-heading text-base text-foreground truncate mb-1 group-hover:text-gold transition-colors">
+          {work.title}
+        </h4>
+        <p className="text-sm text-muted truncate mb-2">{work.artistName}</p>
+        <p className="text-sm font-semibold text-gold">{formatBRL(work.value)}</p>
+      </div>
     </div>
   );
 }
