@@ -3,8 +3,34 @@ import { artists as seedArtists } from "@/data/artists";
 
 const STORAGE_KEY = "artes-dan-artists";
 
-/** Platform markup percentage applied to catalog/public-facing prices. */
-export const PLATFORM_MARKUP = 0.30; // 30% markup
+/** Key used to persist the platform markup percentage in localStorage. */
+const MARKUP_STORAGE_KEY = "artes-dan-markup";
+
+/** Default markup when nothing is stored (30%). */
+const DEFAULT_MARKUP = 0.30;
+
+/**
+ * Read the current platform markup percentage from localStorage.
+ * Returns DEFAULT_MARKUP on the server or when nothing is stored.
+ */
+export function getMarkupPercentage(): number {
+  if (typeof window === "undefined") return DEFAULT_MARKUP;
+  const stored = localStorage.getItem(MARKUP_STORAGE_KEY);
+  if (stored !== null) {
+    const parsed = parseFloat(stored);
+    if (!isNaN(parsed)) return parsed;
+  }
+  return DEFAULT_MARKUP;
+}
+
+/**
+ * Persist a new platform markup percentage to localStorage.
+ * @param value The markup as a decimal (e.g. 0.30 for 30%).
+ */
+export function setMarkupPercentage(value: number): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(MARKUP_STORAGE_KEY, String(value));
+}
 
 /**
  * Apply the platform markup to a value.
@@ -12,7 +38,7 @@ export const PLATFORM_MARKUP = 0.30; // 30% markup
  */
 export function applyMarkup(value: number | null): number | null {
   if (value === null) return null;
-  return Math.round(value * (1 + PLATFORM_MARKUP));
+  return Math.round(value * (1 + getMarkupPercentage()));
 }
 
 /**

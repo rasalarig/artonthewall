@@ -10,6 +10,8 @@ import {
   saveArtist,
   deleteArtist,
   resetToSeedData,
+  getMarkupPercentage,
+  setMarkupPercentage,
 } from "@/lib/catalog";
 
 const STORAGE_KEY = "artes-dan-artists";
@@ -31,9 +33,13 @@ function subscribe(callback: () => void): () => void {
   };
 }
 
+const MARKUP_STORAGE_KEY = "artes-dan-markup";
+
 function getSnapshot(): string {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem(STORAGE_KEY) ?? "";
+  const artists = localStorage.getItem(STORAGE_KEY) ?? "";
+  const markup = localStorage.getItem(MARKUP_STORAGE_KEY) ?? "";
+  return artists + "|" + markup;
 }
 
 function getServerSnapshot(): string {
@@ -71,6 +77,11 @@ export function useCatalog() {
     notifyUpdate();
   }, []);
 
+  const updateMarkup = useCallback((value: number) => {
+    setMarkupPercentage(value);
+    notifyUpdate();
+  }, []);
+
   return {
     artists,
     artworks,
@@ -79,5 +90,7 @@ export function useCatalog() {
     upsertArtist,
     removeArtist,
     reset,
+    markupPercentage: getMarkupPercentage(),
+    updateMarkup,
   };
 }
