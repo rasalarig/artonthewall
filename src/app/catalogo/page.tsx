@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages } from "@/lib/catalog";
+import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
 import { ImageCarousel } from "@/components/ImageCarousel";
 
 /* ------------------------------------------------------------------ */
@@ -51,7 +51,7 @@ export default function CatalogoPage() {
       if (artistFilter && w.artistId !== artistFilter) return false;
       if (techniqueFilter && w.technique !== techniqueFilter) return false;
       if (range.min !== null || range.max !== null) {
-        const v = w.value ?? 0;
+        const v = applyMarkup(w.value) ?? 0;
         if (range.min !== null && v < range.min) return false;
         if (range.max !== null && v > range.max) return false;
       }
@@ -203,8 +203,13 @@ export default function CatalogoPage() {
                     <span className="text-sm text-muted">{work.technique}</span>
                     <span className="text-sm text-muted">{work.size}</span>
                     <span className="text-sm font-bold text-accent">
-                      {formatBRL(work.value)}
+                      {formatBRL(applyMarkup(work.value))}
                     </span>
+                    {work.value !== null && work.value !== 0 && (
+                      <span className="text-[10px] text-muted/50 italic">
+                        (valor de catalogo)
+                      </span>
+                    )}
                   </div>
                 </div>
               </article>

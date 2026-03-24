@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { getWorkImages, formatBRL } from "@/lib/catalog";
+import { getWorkImages, formatBRL, applyMarkup } from "@/lib/catalog";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
 
@@ -108,7 +108,7 @@ function ArtistCardCarousel({ slides }: { slides: CarouselSlide[] }) {
             {current.technique}
           </p>
           <p className="text-accent text-xs font-semibold">
-            {formatBRL(current.value)}
+            {formatBRL(applyMarkup(current.value))}
           </p>
         </div>
 

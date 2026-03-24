@@ -3,6 +3,18 @@ import { artists as seedArtists } from "@/data/artists";
 
 const STORAGE_KEY = "artes-dan-artists";
 
+/** Platform markup percentage applied to catalog/public-facing prices. */
+export const PLATFORM_MARKUP = 0.30; // 30% markup
+
+/**
+ * Apply the platform markup to a value.
+ * Returns null if the input is null, otherwise rounds to the nearest integer.
+ */
+export function applyMarkup(value: number | null): number | null {
+  if (value === null) return null;
+  return Math.round(value * (1 + PLATFORM_MARKUP));
+}
+
 /**
  * Migrate a single artwork from legacy `image` (string) to `images` (string[]).
  * If the artwork already has `images`, returns it unchanged.
