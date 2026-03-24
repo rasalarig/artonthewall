@@ -1,11 +1,12 @@
 import puppeteer from "puppeteer";
-import { writeFileSync, existsSync } from "fs";
+import { writeFileSync, existsSync, readFileSync, readdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const OUTPUT_PATH = path.resolve(__dirname, "..", "catalogo-art-on-the-wall.pdf");
+const IMAGES_DIR = path.resolve(__dirname, "..", "public", "images", "catalog-sm");
 
 // ---------------------------------------------------------------------------
 // Artist data
@@ -154,7 +155,125 @@ const artists = [
       { title: "VANdal", technique: "Giz pastel seco, spray sobre painel de madeira", size: "58.5x49", value: 700 },
     ],
   },
+  // Extra artists from PDF images
+  {
+    name: "Original",
+    characteristics: ["cultura urbana", "latina", "cartoon"],
+    works: [
+      { title: "Whats up homie", technique: "Tinta acrilica sobre tela", size: "80x60cm", value: 11000 },
+      { title: "Marathon Style", technique: "Tinta acrilica sobre tela", size: "60x60cm", value: 7540 },
+      { title: "Car Club", technique: "Spray sobre mdf", size: "40x60cm", value: 3640 },
+      { title: "Red eyes", technique: "Acrilica sobre tela", size: "16x22cm", value: 650 },
+      { title: "Smile Latina", technique: "Acrilica sobre tela", size: "20x25cm", value: 850 },
+    ],
+  },
+  {
+    name: "Judit",
+    characteristics: ["letras", "personagens", "linhas"],
+    works: [
+      { title: "Latinha de Spray", technique: "Croche e linha", size: "76x55cm", value: 11000 },
+      { title: "Casinha", technique: "Croche e linha", size: "37x55cm", value: 3400 },
+      { title: "Casinha", technique: "Croche e linha", size: "40x40cm", value: 2900 },
+      { title: "Rolinho", technique: "Croche e linha", size: "23x24cm", value: 900 },
+      { title: "Vandalima", technique: "Croche e linha", size: "29x40cm", value: 2000 },
+    ],
+  },
+  {
+    name: "Chris Matos",
+    characteristics: ["natureza", "geometria", "cores chapadas"],
+    works: [
+      { title: "Sem titulo", technique: "Acrilico sobre chapa de ferro", size: "91x43cm", value: 1300 },
+      { title: "Sem titulo (4 pecas)", technique: "Acrilica s/ tela", size: "24x18cm", value: 780 },
+      { title: "Sem titulo", technique: "Acrilica sobre mapa da Italia", size: "60x60cm", value: 350 },
+    ],
+  },
+  {
+    name: "Ode",
+    characteristics: ["personagem", "ludico", "colorido"],
+    works: [
+      { title: "Salve o planeta", technique: "Acrilica sobre painel", size: "100x100cm", value: 3650 },
+      { title: "Pirulitinha e o Gato", technique: "Acrilica sobre painel", size: "40x50cm", value: 1600 },
+      { title: "Pirulito Flor", technique: "Acrilica sobre painel", size: "40x30cm", value: 1250 },
+    ],
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// Page-to-artist image mapping
+// ---------------------------------------------------------------------------
+const PAGE_TO_ARTIST = {
+  1: "Esbomgaroto",
+  2: "Snek",
+  3: "Nem",
+  4: "Locones",
+  5: "Shesko e Sirius",
+  6: "Shesko e Sirius",
+  7: "Burni",
+  8: "Bruninho x2",
+  9: "Estranho",
+  10: "Fuku",
+  11: "Krika",
+  12: "Pes",
+  13: "Endo",
+  14: "Rawls",
+  15: "Magico",
+  16: "Dan",
+};
+
+// ---------------------------------------------------------------------------
+// Image loading helpers
+// ---------------------------------------------------------------------------
+function loadImageAsDataUri(filePath) {
+  if (!existsSync(filePath)) return null;
+  const buf = readFileSync(filePath);
+  const base64 = buf.toString("base64");
+  return `data:image/jpeg;base64,${base64}`;
+}
+
+function getArtistImages(artistName) {
+  const images = [];
+
+  // Check for page-mapped images (artistas-pN-M.jpg)
+  for (const [page, name] of Object.entries(PAGE_TO_ARTIST)) {
+    if (name !== artistName) continue;
+    // Find all images for this page
+    const prefix = `artistas-p${page}-`;
+    const allFiles = readdirSync(IMAGES_DIR).filter(
+      (f) => f.startsWith(prefix) && f.endsWith(".jpg")
+    );
+    // Sort numerically by index
+    allFiles.sort((a, b) => {
+      const numA = parseInt(a.replace(prefix, "").replace(".jpg", ""), 10);
+      const numB = parseInt(b.replace(prefix, "").replace(".jpg", ""), 10);
+      return numA - numB;
+    });
+    for (const file of allFiles) {
+      const uri = loadImageAsDataUri(path.join(IMAGES_DIR, file));
+      if (uri) images.push(uri);
+    }
+  }
+
+  // Check for special-prefix images (original-p1-1.jpg, judit-p1-1.jpg, etc.)
+  const specialPrefixes = {
+    Original: "original-",
+    Judit: "judit-",
+    "Chris Matos": "chris-matos-",
+    Ode: "ode-",
+  };
+  const sp = specialPrefixes[artistName];
+  if (sp) {
+    const allFiles = readdirSync(IMAGES_DIR).filter(
+      (f) => f.startsWith(sp) && f.endsWith(".jpg")
+    );
+    allFiles.sort();
+    for (const file of allFiles) {
+      const uri = loadImageAsDataUri(path.join(IMAGES_DIR, file));
+      if (uri) images.push(uri);
+    }
+  }
+
+  return images;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -187,6 +306,24 @@ function buildHtml() {
         .map((c) => `<span class="tag">${c}</span>`)
         .join("");
 
+      // Build image gallery
+      const images = getArtistImages(artist.name);
+      let galleryHtml = "";
+      if (images.length > 0) {
+        const imgTags = images
+          .map(
+            (uri, idx) => {
+              const work = artist.works[idx];
+              const caption = work
+                ? (work.title === "Sem titulo" ? "-" : work.title)
+                : "";
+              return `<div class="gallery-figure"><img src="${uri}" class="gallery-img" /><p class="gallery-caption">${caption}</p></div>`;
+            }
+          )
+          .join("\n");
+        galleryHtml = `<div class="gallery">${imgTags}</div>`;
+      }
+
       let worksHtml;
       if (artist.works.length === 0) {
         worksHtml = `<p class="no-works">sem obras cadastradas</p>`;
@@ -195,7 +332,7 @@ function buildHtml() {
           .map(
             (w, idx) =>
               `<tr class="${idx % 2 === 0 ? "row-even" : "row-odd"}">
-                <td>${w.title}</td>
+                <td>${w.title === "Sem titulo" ? "-" : w.title}</td>
                 <td>${w.technique}</td>
                 <td>${w.size}</td>
                 <td class="value-cell">${formatCurrency(w.value)}</td>
@@ -224,6 +361,7 @@ function buildHtml() {
           <div class="yellow-bar"></div>
           <h2 class="artist-name">${artist.name.toLowerCase()}</h2>
           <div class="tags">${tags}</div>
+          ${galleryHtml}
           ${worksHtml}
           <div class="yellow-line-bottom"></div>
         </div>`;
@@ -343,19 +481,19 @@ function buildHtml() {
       width: 100%;
       height: 6px;
       background: #FFE600;
-      margin-bottom: 40px;
+      margin-bottom: 24px;
     }
     .artist-name {
       font-size: 42px;
       font-weight: 900;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       letter-spacing: 1px;
     }
     .tags {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 32px;
+      margin-bottom: 16px;
     }
     .tag {
       background: #1a1a1a;
@@ -365,6 +503,35 @@ function buildHtml() {
       padding: 5px 14px;
       border-radius: 20px;
     }
+
+    /* ---- Image Gallery ---- */
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .gallery-figure {
+      width: calc(33.333% - 6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .gallery-img {
+      width: 100%;
+      max-height: 140px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid #222;
+    }
+    .gallery-caption {
+      font-size: 10px;
+      color: #aaa;
+      text-align: center;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
     .works-table {
       width: 100%;
       border-collapse: collapse;
@@ -488,7 +655,9 @@ async function main() {
 
   const html = buildHtml();
   console.log("Setting HTML content...");
-  await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+  await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 60000 });
+  // Wait a moment for images to render
+  await new Promise((r) => setTimeout(r, 2000));
 
   console.log("Generating PDF...");
   await page.pdf({
