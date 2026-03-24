@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL } from "@/lib/catalog";
-import { stringToHSL } from "@/lib/colors";
+import { formatBRL, getWorkImages } from "@/lib/catalog";
 
 /* ------------------------------------------------------------------ */
 /*  Price range helpers                                                */
@@ -168,8 +167,8 @@ export default function CatalogoPage() {
       ) : (
         <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
           {filtered.map((work, index) => {
-            const color1 = stringToHSL(work.artistName + work.title, 85, 35);
-            const color2 = stringToHSL(work.title + work.artistName, 75, 25);
+            const workImages = getWorkImages(work);
+            const firstImage = workImages.length > 0 ? workImages[0] : null;
             /* Vary placeholder height based on index for masonry effect */
             const heights = [180, 240, 200, 280, 220, 260];
             const placeholderH = heights[index % heights.length];
@@ -183,21 +182,13 @@ export default function CatalogoPage() {
                   animation: `fadeInUp 0.5s ease-out ${Math.min(index * 80, 800)}ms both`,
                 }}
               >
-                {/* Image or gradient placeholder */}
-                {work.image ? (
+                {/* First image (no gradient placeholder when no photo) */}
+                {firstImage && (
                   <img
-                    src={work.image}
+                    src={firstImage}
                     alt={work.title}
                     className="w-full object-cover"
                     style={{ height: placeholderH }}
-                  />
-                ) : (
-                  <div
-                    className="w-full"
-                    style={{
-                      height: placeholderH,
-                      background: `linear-gradient(135deg, ${color1}, ${color2})`,
-                    }}
                   />
                 )}
 

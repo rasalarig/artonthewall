@@ -6,7 +6,8 @@ export interface Artwork {
   size: string;
   value: number | null;
   description?: string;
-  image?: string; // base64 data URI for uploaded photos
+  image?: string; // LEGACY: single base64 data URI — use `images` instead
+  images?: string[]; // base64 data URIs for uploaded photos
 }
 
 export interface Artist {

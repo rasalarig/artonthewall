@@ -56,7 +56,7 @@ function CadastrarContent() {
   const [obraSize, setObraSize] = useState("");
   const [obraValue, setObraValue] = useState("");
   const [obraDescription, setObraDescription] = useState("");
-  const [obraImage, setObraImage] = useState<string | undefined>(undefined);
+  const [obraImages, setObraImages] = useState<string[]>([]);
   const [obraErrors, setObraErrors] = useState<Record<string, string>>({});
   const [obraSuccess, setObraSuccess] = useState(false);
   const [obraSubmitting, setObraSubmitting] = useState(false);
@@ -119,15 +119,26 @@ function CadastrarContent() {
     }, 2000);
   }
 
-  /* ---- Image upload handler ---- */
+  /* ---- Image upload handler (multi) ---- */
   function handleObraFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setObraImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const promises = Array.from(files).map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        }),
+    );
+    Promise.all(promises).then((results) => {
+      setObraImages((prev) => [...prev, ...results]);
+      if (obraFileRef.current) obraFileRef.current.value = "";
+    });
+  }
+
+  function handleRemoveObraImage(index: number) {
+    setObraImages((prev) => prev.filter((_, i) => i !== index));
   }
 
   /* ---- Artwork submit ---- */
@@ -165,7 +176,7 @@ function CadastrarContent() {
       size: obraSize.trim(),
       value: obraValue.trim() ? parseFloat(obraValue) : null,
       description: obraDescription.trim() || undefined,
-      image: obraImage,
+      images: obraImages.length > 0 ? obraImages : undefined,
     };
 
     const updatedArtist: Artist = {
@@ -566,41 +577,48 @@ function CadastrarContent() {
                 />
               </div>
 
-              {/* Foto */}
+              {/* Fotos */}
               <div>
                 <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
-                  Foto{" "}
+                  Fotos{" "}
                   <span className="text-muted font-normal">(opcional)</span>
                 </label>
-                {obraImage && (
-                  <div className="mb-3 relative inline-block">
-                    <img
-                      src={obraImage}
-                      alt="Preview"
-                      className="h-32 w-auto rounded-lg object-cover border border-border"
-                    />
-                    {!obraSuccess && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setObraImage(undefined);
-                          if (obraFileRef.current) obraFileRef.current.value = "";
-                        }}
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
-                      >
-                        X
-                      </button>
-                    )}
+                {obraImages.length > 0 && (
+                  <div className="flex gap-3 mb-3 overflow-x-auto pb-2">
+                    {obraImages.map((img, idx) => (
+                      <div key={idx} className="relative flex-shrink-0">
+                        <img
+                          src={img}
+                          alt={`Preview ${idx + 1}`}
+                          className="h-32 w-auto rounded-lg object-cover border border-border"
+                        />
+                        {!obraSuccess && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveObraImage(idx)}
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
+                          >
+                            X
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
                 <input
                   ref={obraFileRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleObraFileChange}
                   disabled={obraSuccess}
                   className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all"
                 />
+                {obraImages.length > 0 && (
+                  <p className="mt-1 text-xs text-muted">
+                    {obraImages.length} {obraImages.length === 1 ? "foto" : "fotos"} — selecione mais para adicionar
+                  </p>
+                )}
               </div>
 
               {/* Submit */}

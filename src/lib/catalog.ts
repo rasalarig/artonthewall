@@ -4,6 +4,28 @@ import { artists as seedArtists } from "@/data/artists";
 const STORAGE_KEY = "artes-dan-artists";
 
 /**
+ * Migrate a single artwork from legacy `image` (string) to `images` (string[]).
+ * If the artwork already has `images`, returns it unchanged.
+ * If it has the legacy `image` string, converts to a single-element array.
+ */
+export function migrateArtworkImages(work: Artwork): Artwork {
+  if (work.images && work.images.length > 0) return work;
+  if (work.image) {
+    return { ...work, images: [work.image] };
+  }
+  return work;
+}
+
+/**
+ * Get the images array for an artwork, handling legacy `image` field.
+ */
+export function getWorkImages(work: Artwork): string[] {
+  if (work.images && work.images.length > 0) return work.images;
+  if (work.image) return [work.image];
+  return [];
+}
+
+/**
  * Get artists from localStorage (client-side only).
  * Returns null if not available (SSR or no stored data).
  */

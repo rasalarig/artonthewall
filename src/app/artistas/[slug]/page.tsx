@@ -4,8 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL } from "@/lib/catalog";
-import { stringToHSL } from "@/lib/colors";
+import { formatBRL, getWorkImages } from "@/lib/catalog";
 import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
@@ -41,70 +40,84 @@ const inputClasses =
   "w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder:text-muted outline-none transition-all duration-300 focus:border-accent focus:ring-1 focus:ring-accent";
 
 /* ------------------------------------------------------------------ */
-/*  Image Upload Component                                             */
+/*  Multi-Image Upload Component                                       */
 /* ------------------------------------------------------------------ */
 
-function ImageUpload({
-  value,
+function MultiImageUpload({
+  values,
   onChange,
   disabled,
 }: {
-  value?: string;
-  onChange: (dataUri: string | undefined) => void;
+  values: string[];
+  onChange: (images: string[]) => void;
   disabled?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | undefined>(value);
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setPreview(result);
-      onChange(result);
-    };
-    reader.readAsDataURL(file);
+  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const promises = Array.from(files).map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        }),
+    );
+    Promise.all(promises).then((results) => {
+      onChange([...values, ...results]);
+      if (fileRef.current) fileRef.current.value = "";
+    });
   }
 
-  function handleRemove() {
-    setPreview(undefined);
-    onChange(undefined);
-    if (fileRef.current) fileRef.current.value = "";
+  function handleRemove(index: number) {
+    onChange(values.filter((_, i) => i !== index));
   }
 
   return (
     <div>
       <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
-        Foto <span className="text-muted font-normal">(opcional)</span>
+        Fotos <span className="text-muted font-normal">(opcional)</span>
       </label>
-      {preview && (
-        <div className="mb-3 relative inline-block">
-          <img
-            src={preview}
-            alt="Preview"
-            className="h-32 w-auto rounded-lg object-cover border border-border"
-          />
-          {!disabled && (
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
-            >
-              X
-            </button>
-          )}
+      {values.length > 0 && (
+        <div className="flex gap-3 mb-3 overflow-x-auto pb-2">
+          {values.map((img, idx) => (
+            <div key={idx} className="relative flex-shrink-0">
+              <img
+                src={img}
+                alt={`Foto ${idx + 1}`}
+                className="h-32 w-auto rounded-lg object-cover border border-border"
+              />
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(idx)}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
+                >
+                  X
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
       {!disabled && (
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFile}
-          className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all"
-        />
+        <>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFiles}
+            className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all"
+          />
+          {values.length > 0 && (
+            <p className="mt-1 text-xs text-muted">
+              {values.length} {values.length === 1 ? "foto" : "fotos"} — selecione mais para adicionar
+            </p>
+          )}
+        </>
       )}
     </div>
   );
@@ -128,7 +141,7 @@ function EditWorkForm({
   const [size, setSize] = useState(work.size);
   const [value, setValue] = useState(work.value !== null ? String(work.value) : "");
   const [description, setDescription] = useState(work.description ?? "");
-  const [image, setImage] = useState<string | undefined>(work.image);
+  const [images, setImages] = useState<string[]>(getWorkImages(work));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function handleSubmit(e: React.FormEvent) {
@@ -148,7 +161,8 @@ function EditWorkForm({
       size: size.trim(),
       value: value.trim() ? parseFloat(value) : null,
       description: description.trim() || undefined,
-      image,
+      images: images.length > 0 ? images : undefined,
+      image: undefined,
     });
   }
 
@@ -177,7 +191,7 @@ function EditWorkForm({
         <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Descricao <span className="text-muted font-normal">(opcional)</span></label>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClasses} />
       </div>
-      <ImageUpload value={image} onChange={setImage} />
+      <MultiImageUpload values={images} onChange={setImages} />
       <div className="flex gap-3 pt-2">
         <button type="submit" className="btn-pill btn-yellow text-sm">Salvar</button>
         <button type="button" onClick={onCancel} className="btn-pill btn-white text-sm">Cancelar</button>
@@ -486,16 +500,7 @@ export default function ArtistDetailPage({
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {works.map((work, index) => {
-                const color1 = stringToHSL(
-                  artist.name + work.title,
-                  85,
-                  35,
-                );
-                const color2 = stringToHSL(
-                  work.title + artist.name,
-                  75,
-                  25,
-                );
+                const workImages = getWorkImages(work);
                 const heights = [200, 260, 220, 280];
                 const placeholderH = heights[index % heights.length];
                 const delay = 0.3 + index * 0.08;
@@ -518,22 +523,21 @@ export default function ArtistDetailPage({
                       />
                     ) : (
                       <>
-                        {/* Image or gradient placeholder */}
-                        {work.image ? (
-                          <img
-                            src={work.image}
-                            alt={work.title}
-                            className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            style={{ height: placeholderH }}
-                          />
-                        ) : (
+                        {/* Image gallery (horizontal scroll if multiple) */}
+                        {workImages.length > 0 && (
                           <div
-                            className="w-full transition-transform duration-700 group-hover:scale-105"
-                            style={{
-                              height: placeholderH,
-                              background: `linear-gradient(135deg, ${color1}, ${color2})`,
-                            }}
-                          />
+                            className={`w-full overflow-x-auto ${workImages.length > 1 ? "flex gap-0 snap-x snap-mandatory" : ""}`}
+                            style={{ height: placeholderH }}
+                          >
+                            {workImages.map((img, imgIdx) => (
+                              <img
+                                key={imgIdx}
+                                src={img}
+                                alt={`${work.title} ${imgIdx + 1}`}
+                                className={`h-full object-cover transition-transform duration-700 group-hover:scale-105 ${workImages.length > 1 ? "flex-shrink-0 w-full snap-center" : "w-full"}`}
+                              />
+                            ))}
+                          </div>
                         )}
 
                         {/* Content */}
