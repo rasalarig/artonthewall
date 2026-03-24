@@ -8,7 +8,6 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/catalogo", label: "Catalogo" },
   { href: "/artistas", label: "Artistas" },
-  { href: "/cadastrar", label: "Cadastrar" },
 ];
 
 export default function Header() {
@@ -48,18 +47,15 @@ export default function Header() {
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
           scrolled
-            ? "bg-background/90 backdrop-blur-md shadow-lg shadow-black/40"
-            : "bg-background"
+            ? "bg-accent shadow-lg shadow-black/20"
+            : "bg-accent"
         }`}
       >
-        {/* Neon gradient border at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-green" />
-
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between sm:h-20">
+          <div className="flex h-[70px] items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="group flex items-center gap-2">
-              <span className="header-logo font-heading text-xl font-bold tracking-wide text-neon-cyan sm:text-2xl">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-xl font-extrabold tracking-tight text-black sm:text-2xl uppercase">
                 Art on the Wall
               </span>
             </Link>
@@ -72,19 +68,24 @@ export default function Header() {
                   href={link.href}
                   className={`relative px-4 py-2 text-sm font-bold tracking-wide uppercase transition-colors duration-300 ${
                     isActive(link.href)
-                      ? "text-neon-pink"
-                      : "text-muted hover:text-foreground"
+                      ? "text-black"
+                      : "text-black/60 hover:text-black"
                   }`}
                 >
                   {link.label}
-                  {/* Active underline */}
-                  <span
-                    className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-neon-pink transition-all duration-300 ${
-                      isActive(link.href) ? "w-6" : "w-0"
-                    }`}
-                  />
+                  {isActive(link.href) && (
+                    <span className="absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-black" />
+                  )}
                 </Link>
               ))}
+
+              {/* Cadastrar button */}
+              <Link
+                href="/cadastrar"
+                className="ml-4 inline-flex items-center justify-center rounded-full bg-black px-5 py-2 text-sm font-bold uppercase tracking-wide text-accent transition-all duration-300 hover:bg-black/80"
+              >
+                Cadastrar
+              </Link>
             </nav>
 
             {/* Mobile hamburger */}
@@ -97,17 +98,17 @@ export default function Header() {
             >
               <div className="flex w-6 flex-col gap-1.5">
                 <span
-                  className={`block h-0.5 w-full rounded-full bg-neon-cyan transition-all duration-300 ${
+                  className={`block h-0.5 w-full rounded-full bg-black transition-all duration-300 ${
                     menuOpen ? "translate-y-2 rotate-45" : ""
                   }`}
                 />
                 <span
-                  className={`block h-0.5 w-full rounded-full bg-neon-cyan transition-all duration-300 ${
+                  className={`block h-0.5 w-full rounded-full bg-black transition-all duration-300 ${
                     menuOpen ? "scale-x-0 opacity-0" : ""
                   }`}
                 />
                 <span
-                  className={`block h-0.5 w-full rounded-full bg-neon-cyan transition-all duration-300 ${
+                  className={`block h-0.5 w-full rounded-full bg-black transition-all duration-300 ${
                     menuOpen ? "-translate-y-2 -rotate-45" : ""
                   }`}
                 />
@@ -127,7 +128,7 @@ export default function Header() {
 
       {/* Mobile slide-in menu */}
       <nav
-        className={`fixed right-0 top-0 z-40 flex h-full w-64 flex-col bg-concrete pt-20 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed right-0 top-0 z-40 flex h-full w-72 flex-col bg-surface pt-24 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -138,22 +139,29 @@ export default function Header() {
               href={link.href}
               className={`border-b border-border py-4 text-lg font-bold tracking-wide uppercase transition-colors duration-300 ${
                 isActive(link.href)
-                  ? "text-neon-pink"
-                  : "text-muted hover:text-foreground"
+                  ? "text-accent"
+                  : "text-muted hover:text-white"
               }`}
             >
               {link.label}
-              {isActive(link.href) && (
-                <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-neon-pink" />
-              )}
             </Link>
           ))}
+          <Link
+            href="/cadastrar"
+            className={`border-b border-border py-4 text-lg font-bold tracking-wide uppercase transition-colors duration-300 ${
+              isActive("/cadastrar")
+                ? "text-accent"
+                : "text-muted hover:text-white"
+            }`}
+          >
+            Cadastrar
+          </Link>
         </div>
 
-        {/* Neon accent at bottom of mobile menu */}
+        {/* Accent at bottom of mobile menu */}
         <div className="mt-auto px-6 pb-8">
-          <div className="h-px bg-gradient-to-r from-neon-pink via-neon-cyan to-transparent" />
-          <p className="mt-4 font-body text-xs tracking-widest text-muted uppercase">
+          <div className="h-px bg-accent/30" />
+          <p className="mt-4 text-xs tracking-widest text-muted uppercase">
             Expo Coletiva 2024
           </p>
         </div>
