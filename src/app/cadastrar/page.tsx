@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
 import type { Artist, Artwork } from "@/types";
 
@@ -26,9 +26,19 @@ type Tab = "artista" | "obra";
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function CadastrarPage() {
+  return (
+    <Suspense>
+      <CadastrarContent />
+    </Suspense>
+  );
+}
+
+function CadastrarContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedArtistId = searchParams.get("artistId") ?? "";
   const { artists, upsertArtist } = useCatalog();
-  const [activeTab, setActiveTab] = useState<Tab>("artista");
+  const [activeTab, setActiveTab] = useState<Tab>(preselectedArtistId ? "obra" : "artista");
 
   /* ---- Artist form state ---- */
   const [artistName, setArtistName] = useState("");
@@ -40,14 +50,17 @@ export default function CadastrarPage() {
   const tagInputRef = useRef<HTMLInputElement>(null);
 
   /* ---- Artwork form state ---- */
-  const [selectedArtistId, setSelectedArtistId] = useState("");
+  const [selectedArtistId, setSelectedArtistId] = useState(preselectedArtistId);
   const [obraTitle, setObraTitle] = useState("");
   const [obraTechnique, setObraTechnique] = useState("");
   const [obraSize, setObraSize] = useState("");
   const [obraValue, setObraValue] = useState("");
+  const [obraDescription, setObraDescription] = useState("");
+  const [obraImage, setObraImage] = useState<string | undefined>(undefined);
   const [obraErrors, setObraErrors] = useState<Record<string, string>>({});
   const [obraSuccess, setObraSuccess] = useState(false);
   const [obraSubmitting, setObraSubmitting] = useState(false);
+  const obraFileRef = useRef<HTMLInputElement>(null);
 
   /* ---- Tag input handlers ---- */
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -106,6 +119,17 @@ export default function CadastrarPage() {
     }, 2000);
   }
 
+  /* ---- Image upload handler ---- */
+  function handleObraFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setObraImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
   /* ---- Artwork submit ---- */
   function handleObraSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -140,6 +164,8 @@ export default function CadastrarPage() {
       technique: obraTechnique.trim(),
       size: obraSize.trim(),
       value: obraValue.trim() ? parseFloat(obraValue) : null,
+      description: obraDescription.trim() || undefined,
+      image: obraImage,
     };
 
     const updatedArtist: Artist = {
@@ -517,6 +543,63 @@ export default function CadastrarPage() {
                   onChange={(e) => setObraValue(e.target.value)}
                   disabled={obraSuccess}
                   className={inputClasses}
+                />
+              </div>
+
+              {/* Descricao */}
+              <div>
+                <label
+                  htmlFor="obra-description"
+                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                >
+                  Descricao{" "}
+                  <span className="text-muted font-normal">(opcional)</span>
+                </label>
+                <textarea
+                  id="obra-description"
+                  placeholder="Descricao da obra..."
+                  value={obraDescription}
+                  onChange={(e) => setObraDescription(e.target.value)}
+                  disabled={obraSuccess}
+                  rows={3}
+                  className={inputClasses}
+                />
+              </div>
+
+              {/* Foto */}
+              <div>
+                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+                  Foto{" "}
+                  <span className="text-muted font-normal">(opcional)</span>
+                </label>
+                {obraImage && (
+                  <div className="mb-3 relative inline-block">
+                    <img
+                      src={obraImage}
+                      alt="Preview"
+                      className="h-32 w-auto rounded-lg object-cover border border-border"
+                    />
+                    {!obraSuccess && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setObraImage(undefined);
+                          if (obraFileRef.current) obraFileRef.current.value = "";
+                        }}
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
+                      >
+                        X
+                      </button>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={obraFileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleObraFileChange}
+                  disabled={obraSuccess}
+                  className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all"
                 />
               </div>
 

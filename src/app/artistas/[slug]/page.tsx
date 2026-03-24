@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL } from "@/lib/catalog";
 import { stringToHSL } from "@/lib/colors";
+import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -26,6 +28,164 @@ function artistGradient(name: string): string {
   return `linear-gradient(135deg, hsl(${hue1} 85% 25%) 0%, hsl(${hue2} 75% 30%) 50%, hsl(${hue3} 65% 20%) 100%)`;
 }
 
+function createSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+const inputClasses =
+  "w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder:text-muted outline-none transition-all duration-300 focus:border-accent focus:ring-1 focus:ring-accent";
+
+/* ------------------------------------------------------------------ */
+/*  Image Upload Component                                             */
+/* ------------------------------------------------------------------ */
+
+function ImageUpload({
+  value,
+  onChange,
+  disabled,
+}: {
+  value?: string;
+  onChange: (dataUri: string | undefined) => void;
+  disabled?: boolean;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | undefined>(value);
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setPreview(result);
+      onChange(result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleRemove() {
+    setPreview(undefined);
+    onChange(undefined);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  return (
+    <div>
+      <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+        Foto <span className="text-muted font-normal">(opcional)</span>
+      </label>
+      {preview && (
+        <div className="mb-3 relative inline-block">
+          <img
+            src={preview}
+            alt="Preview"
+            className="h-32 w-auto rounded-lg object-cover border border-border"
+          />
+          {!disabled && (
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
+            >
+              X
+            </button>
+          )}
+        </div>
+      )}
+      {!disabled && (
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFile}
+          className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Edit Work Inline Form                                              */
+/* ------------------------------------------------------------------ */
+
+function EditWorkForm({
+  work,
+  onSave,
+  onCancel,
+}: {
+  work: Artwork;
+  onSave: (updated: Artwork) => void;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState(work.title);
+  const [technique, setTechnique] = useState(work.technique);
+  const [size, setSize] = useState(work.size);
+  const [value, setValue] = useState(work.value !== null ? String(work.value) : "");
+  const [description, setDescription] = useState(work.description ?? "");
+  const [image, setImage] = useState<string | undefined>(work.image);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!title.trim()) errs.title = "Titulo e obrigatorio";
+    if (!technique.trim()) errs.technique = "Tecnica e obrigatoria";
+    if (!size.trim()) errs.size = "Tamanho e obrigatorio";
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+    onSave({
+      ...work,
+      title: title.trim(),
+      technique: technique.trim(),
+      size: size.trim(),
+      value: value.trim() ? parseFloat(value) : null,
+      description: description.trim() || undefined,
+      image,
+    });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="p-5 space-y-4">
+      <div>
+        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Titulo</label>
+        <input value={title} onChange={(e) => { setTitle(e.target.value); setErrors((p) => { const n = { ...p }; delete n.title; return n; }); }} className={inputClasses} />
+        {errors.title && <p className="mt-1 text-sm text-accent-red">{errors.title}</p>}
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Tecnica</label>
+        <input value={technique} onChange={(e) => { setTechnique(e.target.value); setErrors((p) => { const n = { ...p }; delete n.technique; return n; }); }} className={inputClasses} />
+        {errors.technique && <p className="mt-1 text-sm text-accent-red">{errors.technique}</p>}
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Tamanho</label>
+        <input value={size} onChange={(e) => { setSize(e.target.value); setErrors((p) => { const n = { ...p }; delete n.size; return n; }); }} className={inputClasses} />
+        {errors.size && <p className="mt-1 text-sm text-accent-red">{errors.size}</p>}
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Valor em R$ <span className="text-muted font-normal">(opcional)</span></label>
+        <input type="number" min="0" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={inputClasses} />
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Descricao <span className="text-muted font-normal">(opcional)</span></label>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClasses} />
+      </div>
+      <ImageUpload value={image} onChange={setImage} />
+      <div className="flex gap-3 pt-2">
+        <button type="submit" className="btn-pill btn-yellow text-sm">Salvar</button>
+        <button type="button" onClick={onCancel} className="btn-pill btn-white text-sm">Cancelar</button>
+      </div>
+    </form>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
@@ -36,8 +196,19 @@ export default function ArtistDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = React.use(params);
-  const { artists, getArtistBySlug } = useCatalog();
+  const router = useRouter();
+  const { artists, getArtistBySlug, upsertArtist, removeArtist } = useCatalog();
   const artist = getArtistBySlug(slug);
+
+  /* Edit artist state */
+  const [editingArtist, setEditingArtist] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editChars, setEditChars] = useState<string[]>([]);
+  const [editTagInput, setEditTagInput] = useState("");
+  const [editArtistErrors, setEditArtistErrors] = useState<Record<string, string>>({});
+
+  /* Edit work state */
+  const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
 
   /* Compute previous / next artists for navigation */
   const currentIndex = artists.findIndex((a) => a.slug === slug);
@@ -46,6 +217,85 @@ export default function ArtistDetailPage({
     currentIndex >= 0 && currentIndex < artists.length - 1
       ? artists[currentIndex + 1]
       : null;
+
+  /* ---- Start editing artist ---- */
+  function startEditArtist() {
+    if (!artist) return;
+    setEditName(artist.name);
+    setEditChars([...artist.characteristics]);
+    setEditTagInput("");
+    setEditArtistErrors({});
+    setEditingArtist(true);
+  }
+
+  function handleEditTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = editTagInput.trim();
+      if (val && !editChars.includes(val)) {
+        setEditChars((prev) => [...prev, val]);
+        setEditTagInput("");
+        setEditArtistErrors((prev) => {
+          const next = { ...prev };
+          delete next.characteristics;
+          return next;
+        });
+      }
+    }
+  }
+
+  function saveArtistEdit() {
+    if (!artist) return;
+    const errs: Record<string, string> = {};
+    if (!editName.trim()) errs.name = "Nome e obrigatorio";
+    if (editChars.length === 0) errs.characteristics = "Adicione pelo menos uma caracteristica";
+    if (Object.keys(errs).length > 0) {
+      setEditArtistErrors(errs);
+      return;
+    }
+    const newSlug = createSlug(editName.trim());
+    const updated: Artist = {
+      ...artist,
+      name: editName.trim(),
+      slug: newSlug,
+      characteristics: editChars,
+    };
+    upsertArtist(updated);
+    setEditingArtist(false);
+    if (newSlug !== slug) {
+      router.push(`/artistas/${newSlug}`);
+    }
+  }
+
+  /* ---- Delete artist ---- */
+  function handleDeleteArtist() {
+    if (!artist) return;
+    if (!window.confirm(`Tem certeza que deseja excluir o artista "${artist.name}" e todas as suas obras?`)) return;
+    removeArtist(artist.id);
+    router.push("/artistas");
+  }
+
+  /* ---- Save edited work ---- */
+  function handleSaveWork(updated: Artwork) {
+    if (!artist) return;
+    const updatedArtist: Artist = {
+      ...artist,
+      works: artist.works.map((w) => (w.id === updated.id ? updated : w)),
+    };
+    upsertArtist(updatedArtist);
+    setEditingWorkId(null);
+  }
+
+  /* ---- Delete work ---- */
+  function handleDeleteWork(workId: string, workTitle: string) {
+    if (!artist) return;
+    if (!window.confirm(`Tem certeza que deseja excluir a obra "${workTitle}"?`)) return;
+    const updatedArtist: Artist = {
+      ...artist,
+      works: artist.works.filter((w) => w.id !== workId),
+    };
+    upsertArtist(updatedArtist);
+  }
 
   /* ---- 404: artist not found ---- */
   if (!artist) {
@@ -104,26 +354,100 @@ export default function ArtistDetailPage({
 
         {/* Artist info overlay */}
         <div className="absolute bottom-0 left-0 right-0 px-8 pb-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-4 lowercase">
-            {artist.name}
-          </h1>
+          {editingArtist ? (
+            /* ---- Inline edit artist form ---- */
+            <div className="space-y-4 max-w-lg">
+              <div>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => { setEditName(e.target.value); setEditArtistErrors((p) => { const n = { ...p }; delete n.name; return n; }); }}
+                  placeholder="Nome do artista"
+                  className={inputClasses}
+                  autoFocus
+                />
+                {editArtistErrors.name && <p className="mt-1 text-sm text-accent-red">{editArtistErrors.name}</p>}
+              </div>
+              <div>
+                {editChars.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {editChars.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light text-white font-medium border border-border"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => setEditChars((prev) => prev.filter((t) => t !== tag))}
+                          className="ml-1 text-muted hover:text-accent-red transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  value={editTagInput}
+                  onChange={(e) => setEditTagInput(e.target.value)}
+                  onKeyDown={handleEditTagKeyDown}
+                  placeholder="Caracteristica + Enter"
+                  className={inputClasses}
+                />
+                {editArtistErrors.characteristics && <p className="mt-1 text-sm text-accent-red">{editArtistErrors.characteristics}</p>}
+              </div>
+              <div className="flex gap-3">
+                <button onClick={saveArtistEdit} className="btn-pill btn-yellow text-sm">Salvar</button>
+                <button onClick={() => setEditingArtist(false)} className="btn-pill btn-white text-sm">Cancelar</button>
+              </div>
+            </div>
+          ) : (
+            /* ---- Normal display ---- */
+            <>
+              <div className="flex items-start gap-4 mb-4">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white lowercase">
+                  {artist.name}
+                </h1>
+              </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Characteristics tags — clean white pills */}
-            {artist.characteristics.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white font-medium"
-              >
-                {tag}
-              </span>
-            ))}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Characteristics tags */}
+                {artist.characteristics.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
 
-            {/* Works count */}
-            <span className="text-sm text-muted ml-2">
-              {works.length} {works.length === 1 ? "obra" : "obras"}
-            </span>
-          </div>
+                {/* Works count */}
+                <span className="text-sm text-muted ml-2">
+                  {works.length} {works.length === 1 ? "obra" : "obras"}
+                </span>
+
+                {/* Action buttons */}
+                <div className="ml-auto flex gap-2">
+                  <button
+                    onClick={startEditArtist}
+                    className="text-xs px-4 py-1.5 rounded-full border border-white/30 text-white font-bold hover:border-accent hover:text-accent transition-all duration-300"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={handleDeleteArtist}
+                    className="text-xs px-4 py-1.5 rounded-full border border-red-500/50 text-red-400 font-bold hover:border-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -175,6 +499,7 @@ export default function ArtistDetailPage({
                 const heights = [200, 260, 220, 280];
                 const placeholderH = heights[index % heights.length];
                 const delay = 0.3 + index * 0.08;
+                const isEditing = editingWorkId === work.id;
 
                 return (
                   <article
@@ -185,38 +510,73 @@ export default function ArtistDetailPage({
                       animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
                     }}
                   >
-                    {/* Gradient placeholder */}
-                    <div
-                      className="w-full transition-transform duration-700 group-hover:scale-105"
-                      style={{
-                        height: placeholderH,
-                        background: `linear-gradient(135deg, ${color1}, ${color2})`,
-                      }}
-                    />
-
-                    {/* Content */}
-                    <div className="p-5">
-                      <h3 className="font-extrabold text-lg text-white group-hover:text-accent transition-colors duration-300 tracking-tight">
-                        {work.title}
-                      </h3>
-
-                      <div className="mt-3 space-y-1.5">
-                        <p className="text-sm">
-                          <span className="text-accent-pink font-bold">
-                            {work.technique}
-                          </span>
-                        </p>
-                        <p className="text-sm text-muted">{work.size}</p>
-                        {work.description && (
-                          <p className="text-sm text-muted/80 mt-2">
-                            {work.description}
-                          </p>
+                    {isEditing ? (
+                      <EditWorkForm
+                        work={work}
+                        onSave={handleSaveWork}
+                        onCancel={() => setEditingWorkId(null)}
+                      />
+                    ) : (
+                      <>
+                        {/* Image or gradient placeholder */}
+                        {work.image ? (
+                          <img
+                            src={work.image}
+                            alt={work.title}
+                            className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            style={{ height: placeholderH }}
+                          />
+                        ) : (
+                          <div
+                            className="w-full transition-transform duration-700 group-hover:scale-105"
+                            style={{
+                              height: placeholderH,
+                              background: `linear-gradient(135deg, ${color1}, ${color2})`,
+                            }}
+                          />
                         )}
-                        <p className="text-base font-bold text-accent mt-2">
-                          {formatBRL(work.value)}
-                        </p>
-                      </div>
-                    </div>
+
+                        {/* Content */}
+                        <div className="p-5">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-extrabold text-lg text-white group-hover:text-accent transition-colors duration-300 tracking-tight">
+                              {work.title}
+                            </h3>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => setEditingWorkId(work.id)}
+                                className="text-xs px-3 py-1 rounded-full border border-border text-muted font-bold hover:border-accent hover:text-accent transition-all duration-300"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleDeleteWork(work.id, work.title)}
+                                className="text-xs px-3 py-1 rounded-full border border-red-500/30 text-red-400/70 font-bold hover:border-red-400 hover:text-red-300 transition-all duration-300"
+                              >
+                                Excluir
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 space-y-1.5">
+                            <p className="text-sm">
+                              <span className="text-accent-pink font-bold">
+                                {work.technique}
+                              </span>
+                            </p>
+                            <p className="text-sm text-muted">{work.size}</p>
+                            {work.description && (
+                              <p className="text-sm text-muted/80 mt-2">
+                                {work.description}
+                              </p>
+                            )}
+                            <p className="text-base font-bold text-accent mt-2">
+                              {formatBRL(work.value)}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </article>
                 );
               })}

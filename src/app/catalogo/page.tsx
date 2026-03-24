@@ -183,14 +183,23 @@ export default function CatalogoPage() {
                   animation: `fadeInUp 0.5s ease-out ${Math.min(index * 80, 800)}ms both`,
                 }}
               >
-                {/* Gradient placeholder */}
-                <div
-                  className="w-full"
-                  style={{
-                    height: placeholderH,
-                    background: `linear-gradient(135deg, ${color1}, ${color2})`,
-                  }}
-                />
+                {/* Image or gradient placeholder */}
+                {work.image ? (
+                  <img
+                    src={work.image}
+                    alt={work.title}
+                    className="w-full object-cover"
+                    style={{ height: placeholderH }}
+                  />
+                ) : (
+                  <div
+                    className="w-full"
+                    style={{
+                      height: placeholderH,
+                      background: `linear-gradient(135deg, ${color1}, ${color2})`,
+                    }}
+                  />
+                )}
 
                 {/* Content */}
                 <div className="p-4">
