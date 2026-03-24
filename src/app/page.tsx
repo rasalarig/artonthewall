@@ -21,14 +21,20 @@ function artistGradient(name: string): string {
   const hue1 = h % 360;
   const hue2 = (h * 7 + 120) % 360;
   const hue3 = (h * 13 + 240) % 360;
-  return `linear-gradient(135deg, hsl(${hue1} 60% 15%) 0%, hsl(${hue2} 50% 20%) 50%, hsl(${hue3} 40% 12%) 100%)`;
+  return `linear-gradient(135deg, hsl(${hue1} 80% 18%) 0%, hsl(${hue2} 70% 22%) 50%, hsl(${hue3} 60% 15%) 100%)`;
 }
 
 function artworkGradient(id: string): string {
   const h = hashStr(id);
   const hue1 = (h * 3) % 360;
   const hue2 = (h * 11 + 90) % 360;
-  return `linear-gradient(160deg, hsl(${hue1} 55% 18%) 0%, hsl(${hue2} 45% 25%) 100%)`;
+  return `linear-gradient(160deg, hsl(${hue1} 75% 20%) 0%, hsl(${hue2} 65% 28%) 100%)`;
+}
+
+/* Neon color cycle for variety */
+const NEON_COLORS = ["#ff2d7b", "#00f0ff", "#39ff14", "#ffe600", "#ff6b00", "#bf5af2"];
+function neonColor(index: number): string {
+  return NEON_COLORS[index % NEON_COLORS.length];
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,8 +55,8 @@ const keyframes = `
   50%      { transform: translateY(-10px); }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(212,168,83,0.15); }
-  50%      { box-shadow: 0 0 40px rgba(212,168,83,0.35); }
+  0%, 100% { box-shadow: 0 0 20px rgba(0,240,255,0.15); }
+  50%      { box-shadow: 0 0 40px rgba(255,45,123,0.35); }
 }
 @keyframes drift {
   0%   { transform: translate(0, 0) rotate(0deg); }
@@ -75,6 +81,10 @@ const keyframes = `
   60%  { opacity: 1; transform: scale(1.08); }
   100% { opacity: 1; transform: scale(1); }
 }
+@keyframes neonPulse {
+  0%, 100% { text-shadow: 0 0 7px currentColor, 0 0 10px currentColor, 0 0 21px currentColor; }
+  50%      { text-shadow: 0 0 14px currentColor, 0 0 28px currentColor, 0 0 42px currentColor; }
+}
 `;
 
 /* ------------------------------------------------------------------ */
@@ -98,68 +108,76 @@ export default function Home() {
       {/*  HERO                                                        */}
       {/* ============================================================ */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* Abstract background shapes */}
+        {/* Abstract background — neon splashes on concrete */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {/* Gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-surface to-background" />
+          {/* Dark concrete base */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-concrete to-background" />
 
-          {/* Floating abstract shapes with varied speeds for parallax feel */}
+          {/* Neon spray paint splashes */}
           <div
             className="absolute top-[10%] left-[15%] w-64 h-64 rounded-full opacity-10"
             style={{
-              background: "radial-gradient(circle, #d4a853 0%, transparent 70%)",
+              background: "radial-gradient(circle, #ff2d7b 0%, transparent 70%)",
               animation: "drift 20s ease-in-out infinite",
             }}
           />
           <div
             className="absolute top-[60%] right-[10%] w-96 h-96 rounded-full"
             style={{
-              background: "radial-gradient(circle, #e8c875 0%, transparent 70%)",
+              background: "radial-gradient(circle, #00f0ff 0%, transparent 70%)",
               animation: "drift 30s ease-in-out infinite reverse",
-              opacity: 0.06,
+              opacity: 0.08,
             }}
           />
           <div
             className="absolute top-[30%] right-[30%] w-48 h-48 opacity-10"
             style={{
-              background: "linear-gradient(45deg, transparent 30%, #d4a85320 50%, transparent 70%)",
+              background: "linear-gradient(45deg, transparent 30%, #39ff1420 50%, transparent 70%)",
               animation: "drift 15s ease-in-out infinite 3s",
               transform: "rotate(45deg)",
             }}
           />
-          {/* Extra slow-drifting shape for depth */}
           <div
             className="absolute top-[50%] left-[60%] w-72 h-72 rounded-full"
             style={{
-              background: "radial-gradient(circle, #b8923e 0%, transparent 70%)",
+              background: "radial-gradient(circle, #bf5af2 0%, transparent 70%)",
               animation: "drift 35s ease-in-out infinite 5s",
-              opacity: 0.04,
+              opacity: 0.06,
+            }}
+          />
+          {/* Extra neon green splash */}
+          <div
+            className="absolute top-[20%] left-[70%] w-56 h-56 rounded-full"
+            style={{
+              background: "radial-gradient(circle, #39ff14 0%, transparent 70%)",
+              animation: "drift 25s ease-in-out infinite 2s",
+              opacity: 0.05,
             }}
           />
 
-          {/* Horizontal accent lines */}
-          <div className="absolute top-1/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
-          <div className="absolute top-2/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/5 to-transparent" />
+          {/* Horizontal accent lines - neon */}
+          <div className="absolute top-1/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-neon-pink/10 to-transparent" />
+          <div className="absolute top-2/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-neon-cyan/10 to-transparent" />
 
-          {/* Diagonal decorative line */}
+          {/* Diagonal decorative lines */}
           <div
-            className="absolute top-0 right-[20%] w-px h-[140%] bg-gradient-to-b from-transparent via-gold/10 to-transparent"
+            className="absolute top-0 right-[20%] w-px h-[140%] bg-gradient-to-b from-transparent via-neon-cyan/10 to-transparent"
             style={{ transform: "rotate(15deg)", transformOrigin: "top center" }}
           />
           <div
-            className="absolute top-0 left-[25%] w-px h-[130%] bg-gradient-to-b from-transparent via-gold/5 to-transparent"
+            className="absolute top-0 left-[25%] w-px h-[130%] bg-gradient-to-b from-transparent via-neon-pink/5 to-transparent"
             style={{ transform: "rotate(-12deg)", transformOrigin: "top center" }}
           />
         </div>
 
         {/* Title with staggered letter animation */}
         <h1 className="relative z-10 text-center select-none">
-          <span className="block text-sm md:text-base tracking-[0.4em] uppercase text-gold/60 font-body mb-4"
+          <span className="block text-sm md:text-base tracking-[0.4em] uppercase text-neon-pink/70 font-accent mb-4"
             style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
           >
             Expo Coletiva
           </span>
-          <span className="flex flex-wrap justify-center gap-x-[0.15em] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-heading font-bold tracking-tight">
+          <span className="flex flex-wrap justify-center gap-x-[0.15em] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-heading tracking-tight">
             {"ART ON THE WALL".split("").map((char, i) => (
               <span
                 key={i}
@@ -170,6 +188,7 @@ export default function Home() {
                         opacity: 0,
                         animation: `letterReveal 0.7s ease-out forwards`,
                         animationDelay: `${0.3 + i * 0.05}s`,
+                        textShadow: "0 0 20px rgba(0,240,255,0.3), 2px 2px 0px rgba(0,0,0,0.8)",
                       }
                     : undefined
                 }
@@ -179,10 +198,10 @@ export default function Home() {
             ))}
           </span>
           <span
-            className="block mt-6 text-lg md:text-xl tracking-widest text-gold font-body"
+            className="block mt-6 text-lg md:text-xl tracking-widest text-neon-cyan font-accent"
             style={{ opacity: 0, animation: "fadeInUp 0.8s ease-out 1.2s forwards" }}
           >
-            Expo Coletiva &bull; Maio 2024
+            Expo Coletiva &bull; Arte Urbana &bull; Maio 2024
           </span>
         </h1>
 
@@ -212,7 +231,7 @@ export default function Home() {
       {/*  STATS BAR                                                   */}
       {/* ============================================================ */}
       <section
-        className="relative py-8 border-y border-gold/20"
+        className="relative py-8 border-y border-neon-cyan/20 bg-concrete"
         style={{
           opacity: 0,
           animation: "fadeInUp 0.8s ease-out 0.2s forwards",
@@ -225,18 +244,18 @@ export default function Home() {
         />
         <div className="relative z-10 max-w-5xl mx-auto px-6 flex justify-center items-center gap-8 md:gap-14">
           <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.5s forwards" }}>
-            <span className="block text-3xl md:text-4xl font-heading font-bold text-gold">{artists.length}</span>
-            <span className="text-xs md:text-sm uppercase tracking-widest text-muted">Artistas</span>
+            <span className="block text-3xl md:text-4xl font-heading text-neon-pink">{artists.length}</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-accent">Artistas</span>
           </div>
-          <span className="text-gold/30 text-2xl font-thin select-none">/</span>
+          <span className="text-neon-cyan/30 text-2xl font-thin select-none">/</span>
           <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.7s forwards" }}>
-            <span className="block text-3xl md:text-4xl font-heading font-bold text-gold">{totalWorks}+</span>
-            <span className="text-xs md:text-sm uppercase tracking-widest text-muted">Obras</span>
+            <span className="block text-3xl md:text-4xl font-heading text-neon-cyan">{totalWorks}+</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-accent">Obras</span>
           </div>
-          <span className="text-gold/30 text-2xl font-thin select-none">/</span>
+          <span className="text-neon-cyan/30 text-2xl font-thin select-none">/</span>
           <div className="text-center" style={{ opacity: 0, animation: "scaleReveal 0.6s ease-out 0.9s forwards" }}>
-            <span className="block text-lg md:text-xl font-heading font-bold text-gold">Graffiti</span>
-            <span className="text-xs md:text-sm uppercase tracking-widest text-muted">Arte Urbana</span>
+            <span className="block text-lg md:text-xl font-heading text-neon-green">Graffiti</span>
+            <span className="text-xs md:text-sm uppercase tracking-widest text-muted font-accent">Arte Urbana</span>
           </div>
         </div>
       </section>
@@ -247,7 +266,7 @@ export default function Home() {
       <section className="py-20 md:py-28 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="relative inline-flex flex-col items-center w-full">
-            {/* Decorative paint splash blob */}
+            {/* Decorative spray paint blob */}
             <svg
               className="absolute -top-8 -left-4 md:-left-8 w-24 h-24 md:w-32 md:h-32 opacity-[0.07] pointer-events-none"
               viewBox="0 0 200 200"
@@ -255,19 +274,19 @@ export default function Home() {
               style={{ animation: "drift 12s ease-in-out infinite" }}
             >
               <path
-                fill="#d4a853"
+                fill="#ff2d7b"
                 d="M45.3,-62.5C57.1,-53.8,64.1,-37.6,68.8,-21.1C73.5,-4.5,75.9,12.3,70.1,26.1C64.3,39.9,50.3,50.6,35.4,57.8C20.5,64.9,4.6,68.5,-12.2,68.1C-29,67.7,-46.7,63.3,-57.1,52.1C-67.5,40.9,-70.5,22.8,-71.6,5C-72.7,-12.7,-71.8,-30.2,-62.5,-41.5C-53.2,-52.9,-35.4,-58.1,-19.1,-63.1C-2.9,-68.1,11.8,-72.8,26.1,-70.5C40.5,-68.2,54.5,-59,45.3,-62.5Z"
                 transform="translate(100 100)"
               />
             </svg>
             <h2
-              className="text-3xl md:text-5xl font-heading text-center mb-4 text-foreground"
+              className="text-3xl md:text-5xl font-heading text-center mb-4 text-foreground text-spray"
               style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.1s forwards" }}
             >
               Artistas em Destaque
             </h2>
             <p
-              className="text-center text-muted mb-14 text-sm md:text-base"
+              className="text-center text-muted mb-14 text-sm md:text-base font-accent"
               style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
             >
               Os talentos que transformam paredes em galerias
@@ -285,9 +304,9 @@ export default function Home() {
       {/* ============================================================ */}
       {/*  WORKS PREVIEW - horizontal scroll                           */}
       {/* ============================================================ */}
-      <section className="py-20 md:py-28 bg-surface/50">
+      <section className="py-20 md:py-28 bg-concrete/50">
         <div className="max-w-6xl mx-auto px-6 mb-10 relative">
-          {/* Decorative paint splash blob */}
+          {/* Decorative spray paint blob */}
           <svg
             className="absolute -top-6 right-0 md:right-12 w-20 h-20 md:w-28 md:h-28 opacity-[0.06] pointer-events-none"
             viewBox="0 0 200 200"
@@ -295,19 +314,19 @@ export default function Home() {
             style={{ animation: "drift 15s ease-in-out infinite reverse" }}
           >
             <path
-              fill="#e8c875"
+              fill="#00f0ff"
               d="M39.5,-51.1C50.9,-44.3,59.5,-31.8,63.8,-17.8C68.1,-3.9,68.1,11.6,62.1,24C56.1,36.3,44.1,45.6,31.1,52.4C18.1,59.2,4.2,63.6,-10.9,62.8C-26,62,-42.3,56.1,-52.7,44.6C-63.1,33.1,-67.6,16,-66.4,0.7C-65.2,-14.7,-58.2,-28.4,-47.7,-35.3C-37.2,-42.3,-23.1,-42.5,-10.1,-45.4C2.9,-48.3,28.1,-57.9,39.5,-51.1Z"
               transform="translate(100 100)"
             />
           </svg>
           <h2
-            className="text-3xl md:text-5xl font-heading text-center mb-4"
+            className="text-3xl md:text-5xl font-heading text-center mb-4 text-spray"
             style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.1s forwards" }}
           >
             Obras da Exposi&ccedil;&atilde;o
           </h2>
           <p
-            className="text-center text-muted text-sm md:text-base"
+            className="text-center text-muted text-sm md:text-base font-accent"
             style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
           >
             Arraste para explorar
@@ -343,7 +362,7 @@ export default function Home() {
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full"
             style={{
-              background: "radial-gradient(circle, rgba(212,168,83,0.08) 0%, transparent 60%)",
+              background: "radial-gradient(circle, rgba(0,240,255,0.08) 0%, transparent 60%)",
               animation: "pulse-glow 5s ease-in-out infinite",
             }}
           />
@@ -351,13 +370,13 @@ export default function Home() {
 
         <div className="relative z-10 max-w-2xl mx-auto text-center">
           <h2
-            className="text-3xl md:text-5xl font-heading mb-6"
+            className="text-3xl md:text-5xl font-heading mb-6 text-spray"
             style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.1s forwards" }}
           >
-            Explore o cat&aacute;logo completo
+            Explore o Muro
           </h2>
           <p
-            className="text-muted mb-12 text-lg"
+            className="text-muted mb-12 text-lg font-accent"
             style={{ opacity: 0, animation: "fadeInUp 0.7s ease-out 0.25s forwards" }}
           >
             Navegue por todos os artistas e obras da exposi&ccedil;&atilde;o
@@ -369,13 +388,13 @@ export default function Home() {
           >
             <Link
               href="/catalogo"
-              className="inline-flex items-center justify-center px-8 py-4 bg-gold text-background font-semibold rounded-lg text-lg transition-all duration-300 hover:bg-gold-light hover:scale-105 hover:shadow-[0_0_30px_rgba(212,168,83,0.3)]"
+              className="inline-flex items-center justify-center px-8 py-4 bg-neon-pink text-background font-bold rounded-lg text-lg uppercase tracking-wider transition-all duration-300 hover:bg-neon-pink/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,45,123,0.4)]"
             >
               Ver Cat&aacute;logo
             </Link>
             <Link
               href="/cadastrar"
-              className="inline-flex items-center justify-center px-8 py-4 border border-gold/40 text-gold font-semibold rounded-lg text-lg transition-all duration-300 hover:border-gold hover:bg-gold/10 hover:scale-105"
+              className="inline-flex items-center justify-center px-8 py-4 border border-neon-cyan/40 text-neon-cyan font-bold rounded-lg text-lg uppercase tracking-wider transition-all duration-300 hover:border-neon-cyan hover:bg-neon-cyan/10 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
             >
               Cadastrar Artista
             </Link>
@@ -392,45 +411,61 @@ export default function Home() {
 
 function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
   const delay = 0.3 + index * 0.1;
+  const glowColor = neonColor(index);
 
   return (
     <Link
       href={`/artistas/${artist.slug}`}
-      className="group relative block rounded-xl overflow-hidden border border-border transition-all duration-500 hover:border-gold/60 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(212,168,83,0.15)]"
+      className="group relative block rounded-xl overflow-hidden border border-border transition-all duration-500 hover:scale-[1.03]"
       style={{
         opacity: 0,
         animation: `fadeInUp 0.7s ease-out ${delay}s forwards`,
       }}
     >
+      {/* Hover glow - uses neon color */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none z-10"
+        style={{
+          boxShadow: `0 0 30px ${glowColor}30, inset 0 0 30px ${glowColor}10`,
+        }}
+      />
+
       {/* Abstract gradient background */}
       <div
         className="h-44 md:h-52 w-full relative"
         style={{ background: artistGradient(artist.name) }}
       >
-        {/* Decorative overlay shapes */}
+        {/* Decorative overlay shapes — neon */}
         <div
           className="absolute inset-0 opacity-20"
           style={{
-            background: `radial-gradient(ellipse at ${30 + (hashStr(artist.id) % 40)}% ${20 + (hashStr(artist.id) % 60)}%, rgba(212,168,83,0.3) 0%, transparent 50%)`,
+            background: `radial-gradient(ellipse at ${30 + (hashStr(artist.id) % 40)}% ${20 + (hashStr(artist.id) % 60)}%, ${glowColor}40 0%, transparent 50%)`,
           }}
         />
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-surface to-transparent" />
 
         {/* Works count badge */}
-        <span className="absolute top-4 right-4 bg-background/70 backdrop-blur-sm text-gold text-xs font-semibold px-3 py-1 rounded-full border border-gold/20">
+        <span
+          className="absolute top-4 right-4 bg-background/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full border"
+          style={{ color: glowColor, borderColor: `${glowColor}30` }}
+        >
           {artist.works.length} {artist.works.length === 1 ? "obra" : "obras"}
         </span>
       </div>
 
       <div className="p-5 bg-surface">
-        <h3 className="text-xl font-heading text-foreground mb-3 group-hover:text-gold transition-colors duration-300">
+        <h3 className="text-xl font-heading text-foreground mb-3 group-hover:text-neon-cyan transition-colors duration-300">
           {artist.name}
         </h3>
         <div className="flex flex-wrap gap-2">
-          {artist.characteristics.slice(0, 3).map((tag) => (
+          {artist.characteristics.slice(0, 3).map((tag, ti) => (
             <span
               key={tag}
-              className="text-xs px-2.5 py-1 rounded-full bg-surface-light text-muted border border-border"
+              className="sticker text-xs px-2.5 py-1 rounded-full bg-surface-light border border-border font-bold"
+              style={{
+                color: neonColor(ti + index),
+                ["--sticker-rotation" as string]: `${(ti % 3) - 1}deg`,
+              }}
             >
               {tag}
             </span>
@@ -454,15 +489,24 @@ function WorkCard({
   index: number;
 }) {
   const delay = 0.15 + index * 0.05;
+  const glowColor = neonColor(index);
 
   return (
     <div
-      className="group shrink-0 w-64 md:w-72 rounded-xl overflow-hidden border border-border bg-surface transition-all duration-500 hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,168,83,0.12)]"
+      className="group shrink-0 w-64 md:w-72 rounded-xl overflow-hidden border border-border bg-surface transition-all duration-500"
       style={{
         opacity: 0,
         animation: `slideInLeft 0.6s ease-out ${delay}s forwards`,
       }}
     >
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none z-10"
+        style={{
+          boxShadow: `0 0 25px ${glowColor}20`,
+        }}
+      />
+
       {/* Abstract artwork placeholder */}
       <div
         className="relative h-48 md:h-56 w-full overflow-hidden"
@@ -471,23 +515,23 @@ function WorkCard({
         <div
           className="absolute inset-0 opacity-15"
           style={{
-            background: `conic-gradient(from ${hashStr(work.id) % 360}deg at 50% 50%, rgba(212,168,83,0.2) 0%, transparent 30%, rgba(232,200,117,0.1) 60%, transparent 100%)`,
+            background: `conic-gradient(from ${hashStr(work.id) % 360}deg at 50% 50%, ${glowColor}30 0%, transparent 30%, ${neonColor(index + 2)}15 60%, transparent 100%)`,
           }}
         />
 
         {/* Hover overlay with details */}
         <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center">
-          <span className="text-gold text-sm font-semibold mb-1">{work.technique}</span>
+          <span className="text-neon-cyan text-sm font-bold mb-1">{work.technique}</span>
           <span className="text-muted text-xs">{work.size}</span>
         </div>
       </div>
 
       <div className="p-4">
-        <h4 className="font-heading text-base text-foreground truncate mb-1 group-hover:text-gold transition-colors">
+        <h4 className="font-heading text-base text-foreground truncate mb-1 group-hover:text-neon-pink transition-colors">
           {work.title}
         </h4>
         <p className="text-sm text-muted truncate mb-2">{work.artistName}</p>
-        <p className="text-sm font-semibold text-gold">{formatBRL(work.value)}</p>
+        <p className="text-sm font-bold text-neon-cyan">{formatBRL(work.value)}</p>
       </div>
     </div>
   );

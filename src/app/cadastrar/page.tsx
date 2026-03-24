@@ -17,6 +17,12 @@ function createSlug(name: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+/* Neon color cycle */
+const NEON_COLORS = ["#ff2d7b", "#00f0ff", "#39ff14", "#ffe600", "#ff6b00", "#bf5af2"];
+function neonColor(index: number): string {
+  return NEON_COLORS[index % NEON_COLORS.length];
+}
+
 /* ------------------------------------------------------------------ */
 /*  Tab type                                                           */
 /* ------------------------------------------------------------------ */
@@ -170,33 +176,35 @@ export default function CadastrarPage() {
 
   return (
     <main className="min-h-screen px-6 py-16 md:py-24 relative">
-      {/* Subtle background pattern */}
+      {/* Subtle background pattern — concrete dots */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, var(--color-gold) 1px, transparent 0)`,
+          backgroundImage: `radial-gradient(circle at 1px 1px, var(--color-neon-cyan) 1px, transparent 0)`,
           backgroundSize: "40px 40px",
         }}
       />
 
       <div className="max-w-xl mx-auto relative">
-        {/* Header with decorative line art */}
+        {/* Header */}
         <div className="text-center mb-10 relative">
-          {/* Abstract line art decoration */}
+          {/* Spray paint splatter decoration */}
           <svg
-            className="absolute -top-6 left-1/2 -translate-x-1/2 w-48 h-12 opacity-[0.12] pointer-events-none"
+            className="absolute -top-6 left-1/2 -translate-x-1/2 w-48 h-12 opacity-[0.15] pointer-events-none"
             viewBox="0 0 200 50"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path d="M10 25 Q50 5 100 25 Q150 45 190 25" stroke="#d4a853" strokeWidth="1" fill="none" />
-            <path d="M10 25 Q50 45 100 25 Q150 5 190 25" stroke="#e8c875" strokeWidth="0.5" fill="none" />
-            <circle cx="100" cy="25" r="3" fill="#d4a853" opacity="0.4" />
+            <circle cx="40" cy="25" r="8" fill="#ff2d7b" opacity="0.4" />
+            <circle cx="100" cy="20" r="5" fill="#00f0ff" opacity="0.3" />
+            <circle cx="160" cy="28" r="7" fill="#39ff14" opacity="0.35" />
+            <circle cx="70" cy="35" r="3" fill="#ffe600" opacity="0.3" />
+            <circle cx="130" cy="15" r="4" fill="#bf5af2" opacity="0.25" />
           </svg>
-          <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-wide text-gold mb-3">
-            Cadastrar
+          <h1 className="text-4xl md:text-5xl font-heading tracking-wide text-neon-cyan mb-3 text-spray">
+            CADASTRAR
           </h1>
-          <p className="text-muted text-lg">
+          <p className="text-muted text-lg font-accent">
             Adicione novos artistas e obras ao catalogo
           </p>
         </div>
@@ -207,9 +215,9 @@ export default function CadastrarPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`relative flex-1 py-3 text-center font-semibold transition-colors duration-300 ${
+              className={`relative flex-1 py-3 text-center font-bold uppercase tracking-wider transition-colors duration-300 ${
                 activeTab === tab.key
-                  ? "text-gold"
+                  ? "text-neon-pink"
                   : "text-muted hover:text-foreground"
               }`}
             >
@@ -217,7 +225,7 @@ export default function CadastrarPage() {
               {/* Animated underline */}
               {activeTab === tab.key && (
                 <span
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gold"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-pink"
                   style={{
                     animation: "tabSlide 0.3s ease-out forwards",
                   }}
@@ -234,7 +242,7 @@ export default function CadastrarPage() {
             <form onSubmit={handleArtistSubmit} className="space-y-6">
               {/* Success message */}
               {artistSuccess && (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-green-900/30 border border-green-600/40 text-green-400">
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-neon-green/10 border border-neon-green/40 text-neon-green">
                   <svg
                     className="w-5 h-5 flex-shrink-0"
                     fill="none"
@@ -258,7 +266,7 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="artist-name"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Nome do Artista
                 </label>
@@ -276,7 +284,7 @@ export default function CadastrarPage() {
                     });
                   }}
                   disabled={artistSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50"
                 />
                 {artistErrors.name && (
                   <p className="mt-1 text-sm text-red-400">
@@ -289,18 +297,23 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="artist-characteristics"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Caracteristicas
                 </label>
 
-                {/* Tags display */}
+                {/* Tags display — sticker style with neon colors */}
                 {characteristics.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {characteristics.map((tag) => (
+                    {characteristics.map((tag, ti) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light text-gold border border-border"
+                        className="sticker inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light border border-border font-bold"
+                        style={{
+                          color: neonColor(ti),
+                          borderColor: `${neonColor(ti)}30`,
+                          ["--sticker-rotation" as string]: `${(ti % 5) - 2}deg`,
+                        }}
                       >
                         {tag}
                         <button
@@ -338,7 +351,7 @@ export default function CadastrarPage() {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagKeyDown}
                   disabled={artistSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50"
                 />
                 {artistErrors.characteristics && (
                   <p className="mt-1 text-sm text-red-400">
@@ -351,7 +364,7 @@ export default function CadastrarPage() {
               <button
                 type="submit"
                 disabled={artistSuccess || artistSubmitting}
-                className="w-full py-3 rounded-lg bg-gold text-background font-semibold text-lg transition-colors duration-300 hover:bg-gold-light disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-lg bg-neon-pink text-background font-bold text-lg uppercase tracking-wider transition-all duration-300 hover:bg-neon-pink/80 hover:shadow-[0_0_20px_rgba(255,45,123,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {artistSubmitting
                   ? "Salvando..."
@@ -367,7 +380,7 @@ export default function CadastrarPage() {
             <form onSubmit={handleObraSubmit} className="space-y-6">
               {/* Success message */}
               {obraSuccess && (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-green-900/30 border border-green-600/40 text-green-400">
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-neon-green/10 border border-neon-green/40 text-neon-green">
                   <svg
                     className="w-5 h-5 flex-shrink-0"
                     fill="none"
@@ -389,7 +402,7 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="obra-artist"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Artista
                 </label>
@@ -405,7 +418,7 @@ export default function CadastrarPage() {
                     });
                   }}
                   disabled={obraSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50 appearance-none"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50 appearance-none"
                 >
                   <option value="">Selecione um artista...</option>
                   {artists.map((a) => (
@@ -425,7 +438,7 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="obra-title"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Titulo
                 </label>
@@ -443,7 +456,7 @@ export default function CadastrarPage() {
                     });
                   }}
                   disabled={obraSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50"
                 />
                 {obraErrors.title && (
                   <p className="mt-1 text-sm text-red-400">
@@ -456,14 +469,14 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="obra-technique"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Tecnica
                 </label>
                 <input
                   id="obra-technique"
                   type="text"
-                  placeholder="Ex: Oleo sobre tela"
+                  placeholder="Ex: Spray sobre concreto"
                   value={obraTechnique}
                   onChange={(e) => {
                     setObraTechnique(e.target.value);
@@ -474,7 +487,7 @@ export default function CadastrarPage() {
                     });
                   }}
                   disabled={obraSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50"
                 />
                 {obraErrors.technique && (
                   <p className="mt-1 text-sm text-red-400">
@@ -487,7 +500,7 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="obra-size"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Tamanho
                 </label>
@@ -505,7 +518,7 @@ export default function CadastrarPage() {
                     });
                   }}
                   disabled={obraSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50"
                 />
                 {obraErrors.size && (
                   <p className="mt-1 text-sm text-red-400">
@@ -518,7 +531,7 @@ export default function CadastrarPage() {
               <div>
                 <label
                   htmlFor="obra-value"
-                  className="block text-sm font-semibold text-foreground mb-2"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Valor em R${" "}
                   <span className="text-muted font-normal">(opcional)</span>
@@ -532,7 +545,7 @@ export default function CadastrarPage() {
                   value={obraValue}
                   onChange={(e) => setObraValue(e.target.value)}
                   disabled={obraSuccess}
-                  className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-colors duration-300 focus:border-gold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg bg-concrete border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,240,255,0.15)] disabled:opacity-50"
                 />
               </div>
 
@@ -540,7 +553,7 @@ export default function CadastrarPage() {
               <button
                 type="submit"
                 disabled={obraSuccess || obraSubmitting}
-                className="w-full py-3 rounded-lg bg-gold text-background font-semibold text-lg transition-colors duration-300 hover:bg-gold-light disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-lg bg-neon-pink text-background font-bold text-lg uppercase tracking-wider transition-all duration-300 hover:bg-neon-pink/80 hover:shadow-[0_0_20px_rgba(255,45,123,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {obraSubmitting
                   ? "Salvando..."

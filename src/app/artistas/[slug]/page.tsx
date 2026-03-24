@@ -23,7 +23,13 @@ function artistGradient(name: string): string {
   const hue1 = h % 360;
   const hue2 = (h * 7 + 120) % 360;
   const hue3 = (h * 13 + 240) % 360;
-  return `linear-gradient(135deg, hsl(${hue1} 60% 15%) 0%, hsl(${hue2} 50% 20%) 50%, hsl(${hue3} 40% 12%) 100%)`;
+  return `linear-gradient(135deg, hsl(${hue1} 80% 18%) 0%, hsl(${hue2} 70% 22%) 50%, hsl(${hue3} 60% 15%) 100%)`;
+}
+
+/* Neon color cycle */
+const NEON_COLORS = ["#ff2d7b", "#00f0ff", "#39ff14", "#ffe600", "#ff6b00", "#bf5af2"];
+function neonColor(index: number): string {
+  return NEON_COLORS[index % NEON_COLORS.length];
 }
 
 /* ------------------------------------------------------------------ */
@@ -77,7 +83,7 @@ export default function ArtistDetailPage({
             style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out forwards" }}
           >
             <div className="text-6xl mb-6 opacity-30">~</div>
-            <h1 className="text-3xl font-heading font-bold text-foreground mb-4">
+            <h1 className="text-3xl font-heading text-foreground mb-4">
               Artista nao encontrado
             </h1>
             <p className="text-muted mb-8">
@@ -85,7 +91,7 @@ export default function ArtistDetailPage({
             </p>
             <Link
               href="/artistas"
-              className="inline-flex items-center gap-2 text-gold hover:text-gold-light transition-colors duration-300"
+              className="inline-flex items-center gap-2 text-neon-cyan hover:text-neon-pink transition-colors duration-300 font-bold"
             >
               <span aria-hidden="true">&larr;</span> Voltar para artistas
             </Link>
@@ -106,7 +112,7 @@ export default function ArtistDetailPage({
         <div className="max-w-6xl mx-auto px-6 pt-8">
           <Link
             href="/artistas"
-            className="inline-flex items-center gap-2 text-sm text-muted hover:text-gold transition-colors duration-300"
+            className="inline-flex items-center gap-2 text-sm text-muted hover:text-neon-cyan transition-colors duration-300 font-bold"
             style={{ opacity: 0, animation: "fadeIn 0.5s ease-out forwards" }}
           >
             <span aria-hidden="true">&larr;</span> Voltar para artistas
@@ -129,11 +135,11 @@ export default function ArtistDetailPage({
                 animation: "bannerShift 8s ease-in-out infinite alternate",
               }}
             />
-            {/* Decorative radial overlay */}
+            {/* Spray paint overlay */}
             <div
               className="absolute inset-0 opacity-25"
               style={{
-                background: `radial-gradient(ellipse at ${30 + (hashStr(artist.id) % 40)}% ${20 + (hashStr(artist.id) % 60)}%, rgba(212,168,83,0.4) 0%, transparent 60%)`,
+                background: `radial-gradient(ellipse at ${30 + (hashStr(artist.id) % 40)}% ${20 + (hashStr(artist.id) % 60)}%, #ff2d7b40 0%, transparent 40%), radial-gradient(ellipse at ${60 + (hashStr(artist.id) % 20)}% ${50 + (hashStr(artist.id) % 30)}%, #00f0ff30 0%, transparent 50%)`,
               }}
             />
             {/* Bottom fade */}
@@ -142,39 +148,44 @@ export default function ArtistDetailPage({
 
           {/* Artist info overlay */}
           <div className="absolute bottom-0 left-0 right-0 px-8 pb-8">
-            <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-wide text-gold mb-3">
+            <h1 className="text-4xl md:text-5xl font-heading tracking-wide text-neon-cyan mb-3 text-spray">
               {artist.name}
             </h1>
 
             <div className="flex flex-wrap items-center gap-3">
-              {/* Characteristics tags */}
-              {artist.characteristics.map((tag) => (
+              {/* Characteristics tags — sticker style with varying neon colors */}
+              {artist.characteristics.map((tag, ti) => (
                 <span
                   key={tag}
-                  className="text-xs px-3 py-1 rounded-full bg-surface/80 backdrop-blur-sm text-gold-light border border-gold/20"
+                  className="sticker text-xs px-3 py-1 rounded-full bg-surface/80 backdrop-blur-sm border border-border font-bold"
+                  style={{
+                    color: neonColor(ti),
+                    borderColor: `${neonColor(ti)}30`,
+                    ["--sticker-rotation" as string]: `${(ti % 5) - 2}deg`,
+                  }}
                 >
                   {tag}
                 </span>
               ))}
 
               {/* Works count */}
-              <span className="text-sm text-muted ml-2">
+              <span className="text-sm text-muted ml-2 font-accent">
                 {works.length} {works.length === 1 ? "obra" : "obras"}
               </span>
             </div>
           </div>
         </section>
 
-        {/* Artistic decorative quote */}
+        {/* Urban decorative quote */}
         <div
           className="max-w-6xl mx-auto px-6 mt-8 flex items-center justify-center gap-3"
           style={{ opacity: 0, animation: "fadeIn 0.8s ease-out 0.4s forwards" }}
         >
-          <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent to-gold/30" />
-          <p className="text-sm italic text-muted/60 font-heading tracking-wide">
-            &ldquo;A arte existe para que a realidade nao nos destrua&rdquo;
+          <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent to-neon-pink/30" />
+          <p className="text-sm text-muted/60 font-heading tracking-wide">
+            &ldquo;A rua e a galeria&rdquo;
           </p>
-          <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent to-gold/30" />
+          <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent to-neon-cyan/30" />
         </div>
 
         {/* ---- Works Grid ---- */}
@@ -196,7 +207,7 @@ export default function ArtistDetailPage({
           ) : (
             <>
               <h2
-                className="text-2xl font-heading font-semibold text-foreground mb-8"
+                className="text-2xl font-heading text-foreground mb-8"
                 style={{
                   opacity: 0,
                   animation: "fadeInUp 0.6s ease-out 0.25s forwards",
@@ -208,27 +219,36 @@ export default function ArtistDetailPage({
                 {works.map((work, index) => {
                   const color1 = stringToHSL(
                     artist.name + work.title,
-                    65,
+                    85,
                     35,
                   );
                   const color2 = stringToHSL(
                     work.title + artist.name,
-                    55,
+                    75,
                     25,
                   );
                   const heights = [200, 260, 220, 280];
                   const placeholderH = heights[index % heights.length];
                   const delay = 0.3 + index * 0.08;
+                  const glowColor = neonColor(index);
 
                   return (
                     <article
                       key={work.id}
-                      className="group overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:border-gold/60 hover:shadow-[0_0_24px_rgba(212,168,83,0.15)] hover:scale-[1.02]"
+                      className="group overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         opacity: 0,
                         animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
                       }}
                     >
+                      {/* Hover glow */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none z-10"
+                        style={{
+                          boxShadow: `0 0 24px ${glowColor}25`,
+                        }}
+                      />
+
                       {/* Gradient placeholder */}
                       <div
                         className="w-full transition-transform duration-700 group-hover:scale-105"
@@ -240,13 +260,13 @@ export default function ArtistDetailPage({
 
                       {/* Content */}
                       <div className="p-5">
-                        <h3 className="font-heading text-lg font-semibold text-foreground group-hover:text-gold transition-colors duration-300">
+                        <h3 className="font-heading text-lg text-foreground group-hover:text-neon-cyan transition-colors duration-300">
                           {work.title}
                         </h3>
 
                         <div className="mt-3 space-y-1.5">
                           <p className="text-sm text-muted">
-                            <span className="text-gold-light">
+                            <span className="text-neon-pink font-bold">
                               {work.technique}
                             </span>
                           </p>
@@ -256,7 +276,7 @@ export default function ArtistDetailPage({
                               {work.description}
                             </p>
                           )}
-                          <p className="text-base font-semibold text-gold mt-2">
+                          <p className="text-base font-bold text-neon-cyan mt-2">
                             {formatBRL(work.value)}
                           </p>
                         </div>
@@ -278,7 +298,7 @@ export default function ArtistDetailPage({
           >
             <Link
               href={`/cadastrar?artistId=${artist.id}`}
-              className="inline-flex items-center justify-center px-8 py-4 border border-gold/40 text-gold font-semibold rounded-lg text-lg transition-all duration-300 hover:border-gold hover:bg-gold/10 hover:scale-105"
+              className="inline-flex items-center justify-center px-8 py-4 border border-neon-pink/40 text-neon-pink font-bold rounded-lg text-lg uppercase tracking-wider transition-all duration-300 hover:border-neon-pink hover:bg-neon-pink/10 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,45,123,0.2)]"
             >
               Adicionar obra para {artist.name}
             </Link>
@@ -297,10 +317,10 @@ export default function ArtistDetailPage({
                 href={`/artistas/${prevArtist.slug}`}
                 className="group flex flex-col items-start gap-1 text-left transition-colors duration-300"
               >
-                <span className="text-xs text-muted group-hover:text-gold transition-colors duration-300">
+                <span className="text-xs text-muted group-hover:text-neon-cyan transition-colors duration-300 font-bold">
                   &larr; Anterior
                 </span>
-                <span className="text-sm font-heading text-foreground group-hover:text-gold transition-colors duration-300">
+                <span className="text-sm font-heading text-foreground group-hover:text-neon-cyan transition-colors duration-300">
                   {prevArtist.name}
                 </span>
               </Link>
@@ -313,10 +333,10 @@ export default function ArtistDetailPage({
                 href={`/artistas/${nextArtist.slug}`}
                 className="group flex flex-col items-end gap-1 text-right transition-colors duration-300"
               >
-                <span className="text-xs text-muted group-hover:text-gold transition-colors duration-300">
+                <span className="text-xs text-muted group-hover:text-neon-pink transition-colors duration-300 font-bold">
                   Proximo &rarr;
                 </span>
-                <span className="text-sm font-heading text-foreground group-hover:text-gold transition-colors duration-300">
+                <span className="text-sm font-heading text-foreground group-hover:text-neon-pink transition-colors duration-300">
                   {nextArtist.name}
                 </span>
               </Link>

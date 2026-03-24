@@ -6,6 +6,14 @@ import { formatBRL } from "@/lib/catalog";
 import { stringToHSL } from "@/lib/colors";
 
 /* ------------------------------------------------------------------ */
+/*  Neon color cycle                                                   */
+/* ------------------------------------------------------------------ */
+const NEON_COLORS = ["#ff2d7b", "#00f0ff", "#39ff14", "#ffe600", "#ff6b00", "#bf5af2"];
+function neonColor(index: number): string {
+  return NEON_COLORS[index % NEON_COLORS.length];
+}
+
+/* ------------------------------------------------------------------ */
 /*  Price range helpers                                                */
 /* ------------------------------------------------------------------ */
 
@@ -17,9 +25,9 @@ interface PriceRange {
 
 const PRICE_RANGES: PriceRange[] = [
   { label: "Todos", min: null, max: null },
-  { label: "Até R$500", min: 0, max: 500 },
-  { label: "R$500–R$1500", min: 500, max: 1500 },
-  { label: "R$1500–R$3000", min: 1500, max: 3000 },
+  { label: "Ate R$500", min: 0, max: 500 },
+  { label: "R$500-R$1500", min: 500, max: 1500 },
+  { label: "R$1500-R$3000", min: 1500, max: 3000 },
   { label: "R$3000+", min: 3000, max: null },
 ];
 
@@ -72,17 +80,17 @@ export default function CatalogoPage() {
     <main className="flex flex-1 flex-col px-4 py-16 sm:px-8 lg:px-16">
       {/* ---- Header ---- */}
       <header className="mb-8 text-center">
-        <h1 className="font-heading text-4xl font-bold tracking-wide text-gold sm:text-5xl">
-          Catálogo
+        <h1 className="font-heading text-4xl tracking-wide text-neon-cyan sm:text-5xl text-spray">
+          CATALOGO
         </h1>
-        <p className="mt-3 text-muted">
+        <p className="mt-3 text-muted font-accent">
           {artworks.length} {artworks.length === 1 ? "obra" : "obras"} no acervo
         </p>
       </header>
 
       {/* ---- Filter bar ---- */}
       <section
-        className="sticky top-0 z-20 -mx-4 mb-6 bg-background/90 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-16 lg:px-16"
+        className="sticky top-0 z-20 -mx-4 mb-6 bg-concrete/90 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-16 lg:px-16"
         style={{
           animationName: "fadeInUp",
           animationDuration: "600ms",
@@ -96,7 +104,7 @@ export default function CatalogoPage() {
           <select
             value={artistFilter}
             onChange={(e) => setArtistFilter(e.target.value)}
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan"
           >
             <option value="">Todos os artistas</option>
             {artists.map((a) => (
@@ -110,9 +118,9 @@ export default function CatalogoPage() {
           <select
             value={techniqueFilter}
             onChange={(e) => setTechniqueFilter(e.target.value)}
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan"
           >
-            <option value="">Todas as técnicas</option>
+            <option value="">Todas as tecnicas</option>
             {techniques.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -126,10 +134,10 @@ export default function CatalogoPage() {
               <button
                 key={range.label}
                 onClick={() => setPriceRangeIdx(idx)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                className={`rounded-full border px-3 py-1.5 text-xs font-bold uppercase transition ${
                   idx === priceRangeIdx
-                    ? "border-gold bg-gold/20 text-gold-light"
-                    : "border-border bg-surface text-muted hover:border-gold/50 hover:text-foreground"
+                    ? "border-neon-pink bg-neon-pink/20 text-neon-pink"
+                    : "border-border bg-surface text-muted hover:border-neon-cyan/50 hover:text-foreground"
                 }`}
               >
                 {range.label}
@@ -141,7 +149,7 @@ export default function CatalogoPage() {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="ml-auto text-xs text-gold underline underline-offset-2 transition hover:text-gold-light"
+              className="ml-auto text-xs text-neon-pink underline underline-offset-2 transition hover:text-neon-cyan font-bold"
             >
               Limpar filtros
             </button>
@@ -168,16 +176,17 @@ export default function CatalogoPage() {
       ) : (
         <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
           {filtered.map((work, index) => {
-            const color1 = stringToHSL(work.artistName + work.title, 65, 35);
-            const color2 = stringToHSL(work.title + work.artistName, 55, 25);
+            const color1 = stringToHSL(work.artistName + work.title, 85, 35);
+            const color2 = stringToHSL(work.title + work.artistName, 75, 25);
             /* Vary placeholder height based on index for masonry effect */
             const heights = [180, 240, 200, 280, 220, 260];
             const placeholderH = heights[index % heights.length];
+            const glowColor = neonColor(index);
 
             return (
               <article
                 key={work.id}
-                className={`catalog-card group mb-5 inline-block w-full overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:border-gold/60 hover:shadow-[0_0_20px_rgba(212,168,83,0.15)]`}
+                className={`catalog-card group mb-5 inline-block w-full overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300`}
                 style={{
                   animationName: "fadeInUp",
                   animationDuration: "500ms",
@@ -187,6 +196,14 @@ export default function CatalogoPage() {
                   ["--card-rotation" as string]: `${((index * 7 + 3) % 5) - 2}deg`,
                 }}
               >
+                {/* Hover glow */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none z-10"
+                  style={{
+                    boxShadow: `0 0 20px ${glowColor}25`,
+                  }}
+                />
+
                 {/* Gradient placeholder */}
                 <div
                   className="w-full"
@@ -198,18 +215,18 @@ export default function CatalogoPage() {
 
                 {/* Content */}
                 <div className="p-4">
-                  <h2 className="font-heading text-lg font-semibold text-foreground">
+                  <h2 className="font-heading text-lg text-foreground">
                     {work.title}
                   </h2>
 
                   {/* Expanded details on hover */}
                   <div className="mt-1 grid max-h-0 gap-1 overflow-hidden transition-all duration-300 group-hover:mt-3 group-hover:max-h-40">
-                    <span className="text-sm text-gold-light">
+                    <span className="text-sm text-neon-pink font-bold">
                       {work.artistName}
                     </span>
                     <span className="text-sm text-muted">{work.technique}</span>
                     <span className="text-sm text-muted">{work.size}</span>
-                    <span className="text-sm font-medium text-gold">
+                    <span className="text-sm font-bold text-neon-cyan">
                       {formatBRL(work.value)}
                     </span>
                   </div>

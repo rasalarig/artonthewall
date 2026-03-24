@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/catalogo", label: "Catálogo" },
+  { href: "/catalogo", label: "Catalogo" },
   { href: "/artistas", label: "Artistas" },
   { href: "/cadastrar", label: "Cadastrar" },
 ];
@@ -48,18 +48,18 @@ export default function Header() {
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
           scrolled
-            ? "bg-background/90 backdrop-blur-md shadow-lg shadow-black/20"
+            ? "bg-background/90 backdrop-blur-md shadow-lg shadow-black/40"
             : "bg-background"
         }`}
       >
-        {/* Gold gradient border at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+        {/* Neon gradient border at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-green" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between sm:h-20">
             {/* Logo */}
             <Link href="/" className="group flex items-center gap-2">
-              <span className="header-logo font-heading text-xl font-bold tracking-wide text-gold sm:text-2xl">
+              <span className="header-logo font-heading text-xl font-bold tracking-wide text-neon-cyan sm:text-2xl">
                 Art on the Wall
               </span>
             </Link>
@@ -70,16 +70,16 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative px-4 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-300 ${
+                  className={`relative px-4 py-2 text-sm font-bold tracking-wide uppercase transition-colors duration-300 ${
                     isActive(link.href)
-                      ? "text-gold"
+                      ? "text-neon-pink"
                       : "text-muted hover:text-foreground"
                   }`}
                 >
                   {link.label}
                   {/* Active underline */}
                   <span
-                    className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-gold transition-all duration-300 ${
+                    className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-neon-pink transition-all duration-300 ${
                       isActive(link.href) ? "w-6" : "w-0"
                     }`}
                   />
@@ -97,17 +97,17 @@ export default function Header() {
             >
               <div className="flex w-6 flex-col gap-1.5">
                 <span
-                  className={`block h-0.5 w-full rounded-full bg-gold transition-all duration-300 ${
+                  className={`block h-0.5 w-full rounded-full bg-neon-cyan transition-all duration-300 ${
                     menuOpen ? "translate-y-2 rotate-45" : ""
                   }`}
                 />
                 <span
-                  className={`block h-0.5 w-full rounded-full bg-gold transition-all duration-300 ${
+                  className={`block h-0.5 w-full rounded-full bg-neon-cyan transition-all duration-300 ${
                     menuOpen ? "scale-x-0 opacity-0" : ""
                   }`}
                 />
                 <span
-                  className={`block h-0.5 w-full rounded-full bg-gold transition-all duration-300 ${
+                  className={`block h-0.5 w-full rounded-full bg-neon-cyan transition-all duration-300 ${
                     menuOpen ? "-translate-y-2 -rotate-45" : ""
                   }`}
                 />
@@ -127,7 +127,7 @@ export default function Header() {
 
       {/* Mobile slide-in menu */}
       <nav
-        className={`fixed right-0 top-0 z-40 flex h-full w-64 flex-col bg-surface pt-20 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed right-0 top-0 z-40 flex h-full w-64 flex-col bg-concrete pt-20 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -136,24 +136,24 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`border-b border-border py-4 text-lg font-medium tracking-wide transition-colors duration-300 ${
+              className={`border-b border-border py-4 text-lg font-bold tracking-wide uppercase transition-colors duration-300 ${
                 isActive(link.href)
-                  ? "text-gold"
+                  ? "text-neon-pink"
                   : "text-muted hover:text-foreground"
               }`}
             >
               {link.label}
               {isActive(link.href) && (
-                <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-gold" />
+                <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-neon-pink" />
               )}
             </Link>
           ))}
         </div>
 
-        {/* Gold accent at bottom of mobile menu */}
+        {/* Neon accent at bottom of mobile menu */}
         <div className="mt-auto px-6 pb-8">
-          <div className="h-px bg-gradient-to-r from-gold/40 to-transparent" />
-          <p className="mt-4 font-heading text-xs tracking-widest text-muted">
+          <div className="h-px bg-gradient-to-r from-neon-pink via-neon-cyan to-transparent" />
+          <p className="mt-4 font-accent text-xs tracking-widest text-muted uppercase">
             Expo Coletiva 2024
           </p>
         </div>

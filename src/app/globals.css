@@ -1,18 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #0a0a0a;
-  --color-foreground: #ededed;
-  --color-surface: #1a1a1a;
-  --color-surface-light: #2a2a2a;
-  --color-border: #333333;
-  --color-gold: #d4a853;
-  --color-gold-light: #e8c875;
-  --color-gold-dark: #b8923e;
-  --color-amber: #f59e0b;
-  --color-muted: #888888;
-  --font-heading: var(--font-playfair);
-  --font-body: var(--font-inter);
+  --color-background: #0d0d0d;
+  --color-foreground: #f0f0f0;
+  --color-surface: #161616;
+  --color-surface-light: #222222;
+  --color-border: #2a2a2a;
+  /* Neon accent colors - spray paint palette */
+  --color-neon-pink: #ff2d7b;
+  --color-neon-cyan: #00f0ff;
+  --color-neon-green: #39ff14;
+  --color-neon-yellow: #ffe600;
+  --color-neon-orange: #ff6b00;
+  --color-neon-purple: #bf5af2;
+  --color-muted: #777777;
+  --color-concrete: #1e1e1e;
+  --font-heading: var(--font-permanent-marker, 'Permanent Marker', cursive);
+  --font-accent: var(--font-russo-one, 'Russo One', sans-serif);
+  --font-body: var(--font-inter, Inter, sans-serif);
 }
 
 /* ------------------------------------------------------------------ */
@@ -32,11 +37,11 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), Georgia, serif;
+  font-family: var(--font-heading), cursive;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Noise / grain texture overlay                                      */
+/*  Concrete wall texture overlay                                      */
 /* ------------------------------------------------------------------ */
 body::before {
   content: '';
@@ -44,10 +49,10 @@ body::before {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.6'/%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 256px 256px;
+  background-size: 512px 512px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -63,38 +68,38 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gold-dark);
+  background: #00f0ff;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gold);
+  background: #ff2d7b;
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-gold-dark) var(--color-background);
+  scrollbar-color: #00f0ff var(--color-background);
 }
 
 /* ------------------------------------------------------------------ */
 /*  Text selection                                                     */
 /* ------------------------------------------------------------------ */
 ::selection {
-  background: var(--color-gold);
-  color: var(--color-background);
+  background: #ff2d7b;
+  color: #0d0d0d;
 }
 
 ::-moz-selection {
-  background: var(--color-gold);
-  color: var(--color-background);
+  background: #ff2d7b;
+  color: #0d0d0d;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Improved focus styles for accessibility                            */
 /* ------------------------------------------------------------------ */
 :focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-neon-cyan);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -135,10 +140,7 @@ body::before {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Text shimmer effect                                                */
-/* ------------------------------------------------------------------ */
-/* ------------------------------------------------------------------ */
-/*  Header logo shimmer on hover                                       */
+/*  Header logo shimmer on hover — neon edition                        */
 /* ------------------------------------------------------------------ */
 .header-logo {
   transition: all 0.3s ease;
@@ -147,11 +149,11 @@ body::before {
 .group:hover .header-logo {
   background: linear-gradient(
     90deg,
-    var(--color-gold-dark) 0%,
-    var(--color-gold-light) 25%,
-    var(--color-gold) 50%,
-    var(--color-gold-light) 75%,
-    var(--color-gold-dark) 100%
+    var(--color-neon-cyan) 0%,
+    var(--color-neon-pink) 25%,
+    var(--color-neon-green) 50%,
+    var(--color-neon-pink) 75%,
+    var(--color-neon-cyan) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -171,18 +173,60 @@ body::before {
   transform: rotate(0deg) !important;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Text shimmer — neon edition                                        */
+/* ------------------------------------------------------------------ */
 .text-shimmer {
   background: linear-gradient(
     90deg,
-    var(--color-gold-dark) 0%,
-    var(--color-gold-light) 25%,
-    var(--color-gold) 50%,
-    var(--color-gold-light) 75%,
-    var(--color-gold-dark) 100%
+    var(--color-neon-cyan) 0%,
+    var(--color-neon-pink) 25%,
+    var(--color-neon-green) 50%,
+    var(--color-neon-pink) 75%,
+    var(--color-neon-cyan) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: anim-shimmer 4s linear infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Spray paint text shadow                                            */
+/* ------------------------------------------------------------------ */
+.text-spray {
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.8), 0 0 20px currentColor;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Drip effect via clip-path on pseudo-element                        */
+/* ------------------------------------------------------------------ */
+.drip-border-bottom {
+  position: relative;
+}
+.drip-border-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: inherit;
+  clip-path: polygon(0% 0%, 3% 0%, 3% 60%, 5% 60%, 5% 0%, 12% 0%, 12% 40%, 14% 40%, 14% 0%, 25% 0%, 25% 80%, 27% 80%, 27% 0%, 35% 0%, 35% 50%, 37% 50%, 37% 0%, 50% 0%, 50% 0%, 65% 0%, 65% 70%, 67% 70%, 67% 0%, 78% 0%, 78% 45%, 80% 45%, 80% 0%, 90% 0%, 90% 55%, 92% 55%, 92% 0%, 100% 0%);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sticker effect for tags                                            */
+/* ------------------------------------------------------------------ */
+.sticker {
+  transform: rotate(var(--sticker-rotation, -1deg));
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Neon glow effect                                                   */
+/* ------------------------------------------------------------------ */
+.neon-glow {
+  text-shadow: 0 0 7px currentColor, 0 0 10px currentColor, 0 0 21px currentColor;
 }
