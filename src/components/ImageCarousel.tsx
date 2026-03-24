@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 /* ------------------------------------------------------------------ */
 /*  Chevron Arrow Button                                               */
@@ -204,13 +205,14 @@ export function ImageCarousel({
         )}
       </div>
 
-      {/* Lightbox modal */}
-      {lightboxOpen && (
+      {/* Lightbox modal — portal to body so fixed positioning works */}
+      {lightboxOpen && createPortal(
         <Lightbox
           images={images}
           initialIndex={currentIndex}
           onClose={() => setLightboxOpen(false)}
-        />
+        />,
+        document.body
       )}
     </>
   );

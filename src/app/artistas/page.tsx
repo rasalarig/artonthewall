@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
 import { getWorkImages, formatBRL, applyMarkup } from "@/lib/catalog";
@@ -119,13 +120,14 @@ function ArtistCardCarousel({ slides }: { slides: CarouselSlide[] }) {
         )}
       </div>
 
-      {/* Lightbox modal */}
-      {lightboxOpen && (
+      {/* Lightbox modal — portal to body */}
+      {lightboxOpen && createPortal(
         <Lightbox
           images={slides.map((s) => s.image)}
           initialIndex={currentIndex}
           onClose={() => setLightboxOpen(false)}
-        />
+        />,
+        document.body
       )}
     </>
   );
