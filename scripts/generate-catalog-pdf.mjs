@@ -306,54 +306,60 @@ function buildHtml() {
         .map((c) => `<span class="tag">${c}</span>`)
         .join("");
 
-      // Build image gallery
+      // Build image gallery with detailed captions
       const images = getArtistImages(artist.name);
       let galleryHtml = "";
       if (images.length > 0) {
-        const imgTags = images
-          .map(
-            (uri, idx) => {
-              const work = artist.works[idx];
-              const caption = work
-                ? (work.title === "Sem titulo" ? "-" : work.title)
-                : "";
-              return `<div class="gallery-figure"><img src="${uri}" class="gallery-img" /><p class="gallery-caption">${caption}</p></div>`;
-            }
-          )
+        // Helper to build info block for a work
+        const buildInfo = (work) => {
+          if (!work) return "";
+          const displayTitle = work.title === "Sem titulo" ? "-" : work.title;
+          return `<div class="gallery-info">
+            <p class="info-title">${displayTitle}</p>
+            <p class="info-detail">${work.technique}</p>
+            <p class="info-detail">${work.size} &middot; ${formatCurrency(work.value)}</p>
+          </div>`;
+        };
+
+        // Image figures with captions
+        const imgFigures = images
+          .map((uri, idx) => {
+            const work = artist.works[idx];
+            return `<div class="gallery-figure"><img src="${uri}" class="gallery-img" />${buildInfo(work)}</div>`;
+          })
           .join("\n");
-        galleryHtml = `<div class="gallery">${imgTags}</div>`;
+
+        // Text-only entries for works without matching images
+        let extraFigures = "";
+        if (artist.works.length > images.length) {
+          extraFigures = artist.works
+            .slice(images.length)
+            .map((w) => {
+              return `<div class="gallery-figure gallery-figure--text-only">${buildInfo(w)}</div>`;
+            })
+            .join("\n");
+        }
+
+        galleryHtml = `<div class="gallery">${imgFigures}${extraFigures}</div>`;
       }
 
       let worksHtml;
-      if (artist.works.length === 0) {
+      if (artist.works.length === 0 && images.length === 0) {
         worksHtml = `<p class="no-works">sem obras cadastradas</p>`;
-      } else {
-        const rows = artist.works
-          .map(
-            (w, idx) =>
-              `<tr class="${idx % 2 === 0 ? "row-even" : "row-odd"}">
-                <td>${w.title === "Sem titulo" ? "-" : w.title}</td>
-                <td>${w.technique}</td>
-                <td>${w.size}</td>
-                <td class="value-cell">${formatCurrency(w.value)}</td>
-              </tr>`
-          )
+      } else if (images.length === 0 && artist.works.length > 0) {
+        // No images but has works: show a simple list
+        const listItems = artist.works
+          .map((w) => {
+            const title = w.title === "Sem titulo" ? "-" : w.title;
+            return `<div class="work-list-item">
+              <span class="info-title">${title}</span>
+              <span class="info-detail">${w.technique} &middot; ${w.size} &middot; ${formatCurrency(w.value)}</span>
+            </div>`;
+          })
           .join("\n");
-
-        worksHtml = `
-          <table class="works-table">
-            <thead>
-              <tr>
-                <th>Titulo</th>
-                <th>Tecnica</th>
-                <th>Tamanho</th>
-                <th>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-            </tbody>
-          </table>`;
+        worksHtml = `<div class="work-list">${listItems}</div>`;
+      } else {
+        worksHtml = "";
       }
 
       return `
@@ -424,11 +430,6 @@ function buildHtml() {
       text-transform: uppercase;
       margin-bottom: 8px;
     }
-    .cover .date {
-      font-size: 16px;
-      color: #888;
-    }
-
     /* ---- TOC ---- */
     .toc {
       page-break-after: always;
@@ -508,61 +509,67 @@ function buildHtml() {
     .gallery {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-bottom: 16px;
     }
     .gallery-figure {
-      width: calc(33.333% - 6px);
+      width: calc(50% - 5px);
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+    .gallery-figure--text-only {
+      background: #111;
+      border-radius: 6px;
+      padding: 12px;
+      justify-content: center;
+      min-height: 80px;
+    }
     .gallery-img {
       width: 100%;
-      max-height: 140px;
+      max-height: 180px;
       object-fit: cover;
       border-radius: 6px;
       border: 2px solid #222;
     }
-    .gallery-caption {
-      font-size: 10px;
-      color: #aaa;
+    .gallery-info {
+      width: 100%;
+      padding: 6px 2px 2px;
       text-align: center;
-      margin-top: 4px;
+    }
+    .info-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
       line-height: 1.3;
     }
-
-    .works-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 24px;
-    }
-    .works-table th {
-      text-align: left;
-      color: #FFE600;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 10px 12px;
-      border-bottom: 1px solid #333;
-    }
-    .works-table td {
-      font-size: 13px;
-      padding: 10px 12px;
-      vertical-align: top;
-    }
-    .row-even td { background: #000; }
-    .row-odd td  { background: #111; }
-    .value-cell {
-      white-space: nowrap;
-      font-weight: 600;
+    .info-detail {
+      font-size: 10px;
+      color: #aaa;
+      line-height: 1.3;
+      margin-bottom: 1px;
     }
     .no-works {
       color: #555;
       font-style: italic;
       font-size: 14px;
       margin-top: 16px;
+    }
+    .work-list {
+      margin-bottom: 16px;
+    }
+    .work-list-item {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .work-list-item .info-title {
+      text-align: left;
+    }
+    .work-list-item .info-detail {
+      text-align: left;
     }
     .yellow-line-bottom {
       width: 60px;
@@ -599,11 +606,6 @@ function buildHtml() {
       color: #666;
       margin-bottom: 6px;
     }
-    .credits .credits-date {
-      font-size: 13px;
-      color: #FFE600;
-      margin-top: 12px;
-    }
   </style>
 </head>
 <body>
@@ -614,7 +616,6 @@ function buildHtml() {
     <h1>ART ON THE WALL</h1>
     <p class="subtitle">Expo Coletiva &bull; Arte Urbana &amp; Graffiti</p>
     <div class="yellow-divider"></div>
-    <p class="date">Maio 2024</p>
   </div>
 
   <!-- Page 2: TOC -->
@@ -634,7 +635,6 @@ function buildHtml() {
     <h2>Art on the Wall</h2>
     <p class="credits-sub">Expo Coletiva de Arte Urbana</p>
     <p class="credits-note">Catalogo gerado digitalmente</p>
-    <p class="credits-date">Maio 2024</p>
   </div>
 
 </body>
