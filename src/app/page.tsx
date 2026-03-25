@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL } from "@/lib/catalog";
+import { formatBRL, getWorkImages } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import type { Artist, Artwork } from "@/types";
 
@@ -246,11 +246,21 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
         animation: `fadeInUp 0.7s ease-out ${delay}s forwards`,
       }}
     >
-      {/* Abstract gradient background */}
+      {/* Artist image or gradient fallback */}
       <div
         className="h-44 md:h-52 w-full relative"
         style={{ background: artistGradient(artist.name) }}
       >
+        {(() => {
+          const firstImage = artist.works[0]?.images?.[0] ?? (artist.works[0]?.image || null);
+          return firstImage ? (
+            <img
+              src={firstImage}
+              alt={artist.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : null;
+        })()}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
 
         {/* Works count badge */}
@@ -300,11 +310,21 @@ function WorkCard({
         animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
       }}
     >
-      {/* Abstract artwork placeholder */}
+      {/* Artwork image or gradient fallback */}
       <div
         className="relative h-48 md:h-56 w-full overflow-hidden"
         style={{ background: artworkGradient(work.id) }}
       >
+        {(() => {
+          const images = getWorkImages(work);
+          return images.length > 0 ? (
+            <img
+              src={images[0]}
+              alt={work.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : null;
+        })()}
         {/* Hover overlay with details */}
         <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center">
           <span className="text-accent text-sm font-bold mb-1">{work.technique}</span>
