@@ -82,6 +82,8 @@ function findLocalChrome(): string {
 export async function GET(req: NextRequest) {
   try {
     const origin = req.nextUrl.origin;
+    const isProduction =
+      process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 
     // Fetch all data from DB
     const [artists, settingsRow] = await Promise.all([
@@ -110,51 +112,11 @@ export async function GET(req: NextRequest) {
 
     const totalWorks = artists.reduce((sum, a) => sum + a.works.length, 0);
 
-    // Pre-fetch all images as base64 to embed in HTML
-    // (Puppeteer on cloud can't reliably load external images)
-    const imageMap = new Map<string, string>();
-    const allImageUrls: { original: string; optimized: string }[] = [];
-
-    for (const artist of artists) {
-      for (const work of artist.works) {
-        for (const img of work.images || []) {
-          const optimized = optimizeCloudinaryUrl(
-            img.startsWith("http") ? img : `${origin}${img}`,
-          );
-          allImageUrls.push({ original: img, optimized });
-        }
-      }
-    }
-
-    // Fetch in batches of 10 to avoid overwhelming the server
-    const BATCH_SIZE = 10;
-    for (let i = 0; i < allImageUrls.length; i += BATCH_SIZE) {
-      const batch = allImageUrls.slice(i, i + BATCH_SIZE);
-      await Promise.all(
-        batch.map(async ({ optimized }) => {
-          try {
-            const res = await fetch(optimized, {
-              signal: AbortSignal.timeout(10000),
-            });
-            if (!res.ok) return;
-            const buffer = await res.arrayBuffer();
-            const ct = res.headers.get("content-type") || "image/jpeg";
-            imageMap.set(
-              optimized,
-              `data:${ct};base64,${Buffer.from(buffer).toString("base64")}`,
-            );
-          } catch {
-            // Skip failed images
-          }
-        }),
-      );
-    }
-
+    // Resolve image URL — in production use Cloudinary URL directly
+    // (the user's browser loads them); locally use optimized URLs for Puppeteer
     function resolveImage(img: string): string {
-      const optimized = optimizeCloudinaryUrl(
-        img.startsWith("http") ? img : `${origin}${img}`,
-      );
-      return imageMap.get(optimized) || optimized;
+      const url = img.startsWith("http") ? img : `${origin}${img}`;
+      return isProduction ? url : optimizeCloudinaryUrl(url);
     }
 
     // Build TOC rows
@@ -228,6 +190,9 @@ export async function GET(req: NextRequest) {
 <head>
   <meta charset="UTF-8" />
   <title>Art on the Wall - Catalogo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <style>
     @page { size: A4; margin: 0; }
 
@@ -530,14 +495,26 @@ export async function GET(req: NextRequest) {
 </body>
 </html>`;
 
-    // Try to generate PDF with Puppeteer
+    // In production (Render): return HTML directly — user's browser renders
+    // images from Cloudinary and can print-to-PDF via window.print()
+    if (isProduction) {
+      const printHtml = html.replace(
+        "</body>",
+        '<script>window.onload=function(){window.print();};</script></body>',
+      );
+      return new NextResponse(printHtml, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
+    // Local development: use Puppeteer for direct PDF download
     try {
       const browser = await launchBrowser();
       try {
         const page = await browser.newPage();
         await page.setContent(html, {
-          waitUntil: "domcontentloaded",
-          timeout: 30000,
+          waitUntil: "networkidle2",
+          timeout: 60000,
         });
         const pdfBuffer = await page.pdf({
           format: "A4",
@@ -557,7 +534,6 @@ export async function GET(req: NextRequest) {
       }
     } catch (pdfError: any) {
       console.error("Puppeteer PDF failed, falling back to HTML:", pdfError);
-      // Fallback: return printable HTML so user can print-to-PDF manually
       const printHtml = html.replace(
         "</body>",
         '<script>window.onload=function(){window.print();};</script></body>',
