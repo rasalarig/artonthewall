@@ -10,7 +10,7 @@ import fs from "fs";
  */
 function optimizeCloudinaryUrl(url: string): string {
   if (url.includes("/image/upload/")) {
-    return url.replace("/image/upload/", "/image/upload/c_limit,w_400,q_50/");
+    return url.replace("/image/upload/", "/image/upload/c_limit,w_300,q_40/");
   }
   return url;
 }
@@ -110,6 +110,53 @@ export async function GET(req: NextRequest) {
 
     const totalWorks = artists.reduce((sum, a) => sum + a.works.length, 0);
 
+    // Pre-fetch all images as base64 to embed in HTML
+    // (Puppeteer on cloud can't reliably load external images)
+    const imageMap = new Map<string, string>();
+    const allImageUrls: { original: string; optimized: string }[] = [];
+
+    for (const artist of artists) {
+      for (const work of artist.works) {
+        for (const img of work.images || []) {
+          const optimized = optimizeCloudinaryUrl(
+            img.startsWith("http") ? img : `${origin}${img}`,
+          );
+          allImageUrls.push({ original: img, optimized });
+        }
+      }
+    }
+
+    // Fetch in batches of 10 to avoid overwhelming the server
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < allImageUrls.length; i += BATCH_SIZE) {
+      const batch = allImageUrls.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async ({ optimized }) => {
+          try {
+            const res = await fetch(optimized, {
+              signal: AbortSignal.timeout(10000),
+            });
+            if (!res.ok) return;
+            const buffer = await res.arrayBuffer();
+            const ct = res.headers.get("content-type") || "image/jpeg";
+            imageMap.set(
+              optimized,
+              `data:${ct};base64,${Buffer.from(buffer).toString("base64")}`,
+            );
+          } catch {
+            // Skip failed images
+          }
+        }),
+      );
+    }
+
+    function resolveImage(img: string): string {
+      const optimized = optimizeCloudinaryUrl(
+        img.startsWith("http") ? img : `${origin}${img}`,
+      );
+      return imageMap.get(optimized) || optimized;
+    }
+
     // Build TOC rows
     const tocRows = artists
       .map((a, i) => {
@@ -146,7 +193,7 @@ export async function GET(req: NextRequest) {
             if (images.length > 0) {
               const imagesHtml = images
                 .map((img) => {
-                  const imgUrl = optimizeCloudinaryUrl(img.startsWith("http") ? img : `${origin}${img}`);
+                  const imgUrl = resolveImage(img);
                   return `<img src="${imgUrl}" class="gallery-img" />`;
                 })
                 .join("\n");
@@ -181,16 +228,13 @@ export async function GET(req: NextRequest) {
 <head>
   <meta charset="UTF-8" />
   <title>Art on the Wall - Catalogo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <style>
     @page { size: A4; margin: 0; }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: #000;
       color: #fff;
       -webkit-print-color-adjust: exact;
@@ -492,8 +536,8 @@ export async function GET(req: NextRequest) {
       try {
         const page = await browser.newPage();
         await page.setContent(html, {
-          waitUntil: "networkidle2",
-          timeout: 60000,
+          waitUntil: "domcontentloaded",
+          timeout: 30000,
         });
         const pdfBuffer = await page.pdf({
           format: "A4",
