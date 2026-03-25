@@ -1,0 +1,3 @@
+Técnica: Print digital 1
+Tamanho: A4
+Valor: 100
