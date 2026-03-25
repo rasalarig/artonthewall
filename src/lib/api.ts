@@ -51,7 +51,7 @@ export async function deleteArtistApi(id: string): Promise<void> {
 
 export async function createWork(data: {
   artistId: string;
-  title: string;
+  title?: string;
   technique: string;
   size: string;
   value?: number | null;
@@ -79,7 +79,10 @@ export async function updateWork(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to update work");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Failed to update work" }));
+    throw new Error(err.error || "Failed to update work");
+  }
   return res.json();
 }
 

@@ -11,33 +11,49 @@ export async function PUT(
   const body = await req.json();
   const { title, technique, size, value, description, images } = body;
 
-  const data: Record<string, unknown> = {};
-  if (title !== undefined) data.title = title.trim();
-  if (technique !== undefined) data.technique = technique.trim();
-  if (size !== undefined) data.size = size.trim();
-  if (value !== undefined)
-    data.value = value !== null && value !== "" ? parseFloat(value) : null;
-  if (description !== undefined)
-    data.description = description?.trim() || null;
+  try {
+    const data: Record<string, unknown> = {};
+    if (title !== undefined) data.title = title?.trim() || '';
+    if (technique !== undefined) data.technique = technique.trim();
+    if (size !== undefined) data.size = size.trim();
+    if (value !== undefined)
+      data.value = value !== null && value !== "" ? parseFloat(value) : null;
+    if (description !== undefined)
+      data.description = description?.trim() || null;
 
-  // Handle images
-  if (images !== undefined) {
-    const base64Images = images.filter((img: string) => img.startsWith("data:"));
-    const existingUrls = images.filter((img: string) => !img.startsWith("data:"));
+    // Handle images
+    if (images !== undefined) {
+      const base64Images = images.filter((img: string) => img.startsWith("data:"));
+      const existingUrls = images.filter((img: string) => !img.startsWith("data:"));
 
-    if (base64Images.length > 0) {
-      const uploaded = await uploadImages(base64Images);
-      data.images = [...existingUrls, ...uploaded];
-    } else {
-      data.images = existingUrls;
+      if (base64Images.length > 0) {
+        try {
+          const uploaded = await uploadImages(base64Images);
+          data.images = [...existingUrls, ...uploaded];
+        } catch (uploadErr) {
+          console.error("Cloudinary upload failed:", uploadErr);
+          return NextResponse.json(
+            { error: "Failed to upload images. Please try again." },
+            { status: 502 }
+          );
+        }
+      } else {
+        data.images = existingUrls;
+      }
     }
-  }
 
-  const work = await prisma.artwork.update({
-    where: { id },
-    data,
-  });
-  return NextResponse.json(work);
+    const work = await prisma.artwork.update({
+      where: { id },
+      data,
+    });
+    return NextResponse.json(work);
+  } catch (err) {
+    console.error("Failed to update work:", err);
+    return NextResponse.json(
+      { error: "Failed to update work" },
+      { status: 500 }
+    );
+  }
 }
 
 // DELETE /api/works/:id

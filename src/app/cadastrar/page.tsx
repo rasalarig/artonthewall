@@ -140,9 +140,6 @@ function CadastrarContent() {
     if (!selectedArtistId) {
       errors.artist = "Selecione um artista";
     }
-    if (!obraTitle.trim()) {
-      errors.title = "Titulo e obrigatorio";
-    }
     if (!obraTechnique.trim()) {
       errors.technique = "Tecnica e obrigatoria";
     }

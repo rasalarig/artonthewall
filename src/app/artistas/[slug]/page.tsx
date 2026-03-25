@@ -151,7 +151,6 @@ function EditWorkForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs: Record<string, string> = {};
-    if (!title.trim()) errs.title = "Titulo e obrigatorio";
     if (!technique.trim()) errs.technique = "Tecnica e obrigatoria";
     if (!size.trim()) errs.size = "Tamanho e obrigatorio";
     if (Object.keys(errs).length > 0) {

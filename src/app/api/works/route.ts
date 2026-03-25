@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { artistId, title, technique, size, value, description, images } = body;
 
-  if (!artistId || !title?.trim() || !technique?.trim() || !size?.trim()) {
+  if (!artistId || !technique?.trim() || !size?.trim()) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   const work = await prisma.artwork.create({
     data: {
       artistId,
-      title: title.trim(),
+      title: title?.trim() || '',
       technique: technique.trim(),
       size: size.trim(),
       value:
