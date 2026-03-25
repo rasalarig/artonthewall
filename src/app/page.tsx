@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages } from "@/lib/catalog";
+import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { getCSSFilter } from "@/lib/imageFilter";
 import type { Artist, Artwork } from "@/types";
@@ -43,7 +43,7 @@ function accentColor(index: number): string {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function Home() {
-  const { artists, artworks, isLoading, imageFilter } = useCatalog();
+  const { artists, artworks, isLoading, imageFilter, markupPercentage } = useCatalog();
 
   if (isLoading) return <Loading />;
 
@@ -188,7 +188,7 @@ export default function Home() {
           <div className="shrink-0 w-[max(0px,calc((100vw-72rem)/2))]" />
 
           {artworks.slice(0, 20).map((work, i) => (
-            <WorkCard key={work.id} work={work} index={i} imageFilter={imageFilter} />
+            <WorkCard key={work.id} work={work} index={i} imageFilter={imageFilter} markupPercentage={markupPercentage} />
           ))}
 
           {/* right spacer */}
@@ -299,10 +299,12 @@ function WorkCard({
   work,
   index,
   imageFilter,
+  markupPercentage,
 }: {
   work: Artwork & { artistName: string };
   index: number;
   imageFilter: string;
+  markupPercentage: number;
 }) {
   const delay = 0.15 + index * 0.05;
 
@@ -342,7 +344,7 @@ function WorkCard({
           {work.title}
         </h4>
         <p className="text-sm text-muted truncate mb-2">{work.artistName}</p>
-        <p className="text-sm font-bold text-accent">{formatBRL(work.value)}</p>
+        <p className="text-sm font-bold text-accent">{formatBRL(applyMarkup(work.value, markupPercentage))}</p>
       </div>
     </div>
   );
