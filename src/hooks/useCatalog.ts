@@ -62,9 +62,10 @@ export function useCatalog() {
   const artists = getAllArtists();
   const artworks = getAllArtworks();
 
-  const upsertArtist = useCallback((artist: Artist) => {
-    saveArtist(artist);
+  const upsertArtist = useCallback((artist: Artist): boolean => {
+    const success = saveArtist(artist);
     notifyUpdate();
+    return success;
   }, []);
 
   const removeArtist = useCallback((id: string) => {

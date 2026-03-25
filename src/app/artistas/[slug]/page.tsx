@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages } from "@/lib/catalog";
+import { formatBRL, getWorkImages, compressImage } from "@/lib/catalog";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import type { Artist, Artwork } from "@/types";
 
@@ -62,7 +62,10 @@ function MultiImageUpload({
       (file) =>
         new Promise<string>((resolve) => {
           const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
+          reader.onload = () => {
+            const dataUri = reader.result as string;
+            compressImage(dataUri).then(resolve);
+          };
           reader.readAsDataURL(file);
         }),
     );
@@ -297,7 +300,11 @@ export default function ArtistDetailPage({
       ...artist,
       works: artist.works.map((w) => (w.id === updated.id ? updated : w)),
     };
-    upsertArtist(updatedArtist);
+    const success = upsertArtist(updatedArtist);
+    if (!success) {
+      alert("Erro ao salvar: armazenamento cheio. Tente remover algumas imagens ou reduzir o tamanho das fotos.");
+      return;
+    }
     setEditingWorkId(null);
   }
 

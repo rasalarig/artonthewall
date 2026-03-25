@@ -79,14 +79,51 @@ function getStoredArtists(): Artist[] | null {
 }
 
 /**
- * Save artists to localStorage (client-side only).
+ * Compress a base64 data URI image using canvas.
+ * Resizes to maxWidth (default 1200px) and re-encodes as JPEG at the given quality.
+ * Must be called client-side only (uses Image, canvas).
  */
-function saveArtists(artists: Artist[]): void {
-  if (typeof window === "undefined") return;
+export function compressImage(
+  dataUri: string,
+  maxWidth = 1200,
+  quality = 0.7,
+): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      if (img.width <= maxWidth) {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      } else {
+        const ratio = maxWidth / img.width;
+        canvas.width = maxWidth;
+        canvas.height = Math.round(img.height * ratio);
+      }
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => {
+      // If decoding fails, return original
+      resolve(dataUri);
+    };
+    img.src = dataUri;
+  });
+}
+
+/**
+ * Save artists to localStorage (client-side only).
+ * Returns true on success, false if storage is full or unavailable.
+ */
+function saveArtists(artists: Artist[]): boolean {
+  if (typeof window === "undefined") return false;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(artists));
-  } catch {
-    // Storage full or unavailable
+    return true;
+  } catch (e) {
+    console.error("Failed to save to localStorage:", e);
+    return false;
   }
 }
 
@@ -151,7 +188,7 @@ export function getAllArtworks(): (Artwork & { artistName: string })[] {
 /**
  * Save a new or updated artist. Persists to localStorage.
  */
-export function saveArtist(artist: Artist): void {
+export function saveArtist(artist: Artist): boolean {
   const all = getAllArtists();
   const idx = all.findIndex((a) => a.id === artist.id);
   if (idx >= 0) {
@@ -159,7 +196,7 @@ export function saveArtist(artist: Artist): void {
   } else {
     all.push(artist);
   }
-  saveArtists(all);
+  return saveArtists(all);
 }
 
 /**

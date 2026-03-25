@@ -3,6 +3,7 @@
 import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
+import { compressImage } from "@/lib/catalog";
 import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
@@ -127,7 +128,10 @@ function CadastrarContent() {
       (file) =>
         new Promise<string>((resolve) => {
           const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
+          reader.onload = () => {
+            const dataUri = reader.result as string;
+            compressImage(dataUri).then(resolve);
+          };
           reader.readAsDataURL(file);
         }),
     );
@@ -184,7 +188,12 @@ function CadastrarContent() {
       works: [...artist.works, newWork],
     };
 
-    upsertArtist(updatedArtist);
+    const success = upsertArtist(updatedArtist);
+    if (!success) {
+      setObraSubmitting(false);
+      alert("Erro ao salvar: armazenamento cheio. Tente remover algumas imagens ou reduzir o tamanho das fotos.");
+      return;
+    }
     setObraSuccess(true);
     setObraSubmitting(false);
 
