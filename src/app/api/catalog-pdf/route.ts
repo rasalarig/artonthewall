@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import puppeteerCore from "puppeteer-core";
-import { execSync } from "child_process";
+import chromium from "@sparticuz/chromium";
 import fs from "fs";
 
 /**
@@ -30,28 +30,53 @@ function applyMarkup(value: number | null, markup: number): number | null {
   return Math.round(value * (1 + markup / 100));
 }
 
-function findChrome(): string {
+async function launchBrowser() {
+  // In production/cloud, use @sparticuz/chromium
+  // Locally, try to find system Chrome
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+
+  if (isProduction) {
+    const executablePath = await chromium.executablePath();
+    return puppeteerCore.launch({
+      args: chromium.args,
+      executablePath,
+      headless: true,
+    });
+  }
+
+  // Local development: find system Chrome
+  const localChrome = findLocalChrome();
+  return puppeteerCore.launch({
+    headless: true,
+    executablePath: localChrome,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+    ],
+  });
+}
+
+function findLocalChrome(): string {
   const candidates = [
     process.env.CHROME_PATH,
     "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
     process.env.LOCALAPPDATA &&
       `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe`,
+    // Linux paths (for Docker/CI)
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
   ].filter(Boolean) as string[];
 
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
 
-  // Try 'where' command on Windows
-  try {
-    const result = execSync("where chrome", { encoding: "utf-8" })
-      .trim()
-      .split("\n")[0];
-    if (result && fs.existsSync(result)) return result;
-  } catch {}
-
-  throw new Error("Chrome not found. Set CHROME_PATH environment variable.");
+  throw new Error("Chrome not found locally. Set CHROME_PATH env var.");
 }
 
 export async function GET(req: NextRequest) {
@@ -462,17 +487,7 @@ export async function GET(req: NextRequest) {
 </html>`;
 
     // Use puppeteer-core to generate PDF directly
-    const browser = await puppeteerCore.launch({
-      headless: true,
-      executablePath: findChrome(),
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-web-security",
-      ],
-    });
+    const browser = await launchBrowser();
 
     try {
       const page = await browser.newPage();
