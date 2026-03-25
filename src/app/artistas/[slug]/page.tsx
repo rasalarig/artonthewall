@@ -128,6 +128,7 @@ function EditWorkForm({
   work,
   onSave,
   onCancel,
+  saving,
 }: {
   work: Artwork;
   onSave: (data: {
@@ -139,6 +140,7 @@ function EditWorkForm({
     images?: string[];
   }) => void;
   onCancel: () => void;
+  saving?: boolean;
 }) {
   const [title, setTitle] = useState(work.title);
   const [technique, setTechnique] = useState(work.technique);
@@ -194,8 +196,8 @@ function EditWorkForm({
       </div>
       <MultiImageUpload values={images} onChange={setImages} />
       <div className="flex gap-3 pt-2">
-        <button type="submit" className="btn-pill btn-yellow text-sm">Salvar</button>
-        <button type="button" onClick={onCancel} className="btn-pill btn-white text-sm">Cancelar</button>
+        <button type="submit" disabled={saving} className={`btn-pill btn-yellow text-sm${saving ? " opacity-50 cursor-not-allowed" : ""}`}>{saving ? "Salvando..." : "Salvar"}</button>
+        <button type="button" onClick={onCancel} disabled={saving} className="btn-pill btn-white text-sm">Cancelar</button>
       </div>
     </form>
   );
@@ -224,6 +226,8 @@ export default function ArtistDetailPage({
 
   /* Edit work state */
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
+  const [savingWork, setSavingWork] = useState(false);
+  const [savingArtist, setSavingArtist] = useState(false);
 
   /* Compute previous / next artists for navigation */
   const currentIndex = artists.findIndex((a) => a.slug === slug);
@@ -268,6 +272,7 @@ export default function ArtistDetailPage({
       setEditArtistErrors(errs);
       return;
     }
+    setSavingArtist(true);
     try {
       const result = await upsertArtist(artist.id, {
         name: editName.trim(),
@@ -279,6 +284,8 @@ export default function ArtistDetailPage({
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao salvar artista");
+    } finally {
+      setSavingArtist(false);
     }
   }
 
@@ -304,11 +311,14 @@ export default function ArtistDetailPage({
     images?: string[];
   }) {
     if (!editingWorkId) return;
+    setSavingWork(true);
     try {
       await editWork(editingWorkId, data);
       setEditingWorkId(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao salvar obra");
+    } finally {
+      setSavingWork(false);
     }
   }
 
@@ -428,8 +438,8 @@ export default function ArtistDetailPage({
                 {editArtistErrors.characteristics && <p className="mt-1 text-sm text-accent-red">{editArtistErrors.characteristics}</p>}
               </div>
               <div className="flex gap-3">
-                <button onClick={saveArtistEdit} className="btn-pill btn-yellow text-sm">Salvar</button>
-                <button onClick={() => setEditingArtist(false)} className="btn-pill btn-white text-sm">Cancelar</button>
+                <button onClick={saveArtistEdit} disabled={savingArtist} className={`btn-pill btn-yellow text-sm${savingArtist ? " opacity-50 cursor-not-allowed" : ""}`}>{savingArtist ? "Salvando..." : "Salvar"}</button>
+                <button onClick={() => setEditingArtist(false)} disabled={savingArtist} className="btn-pill btn-white text-sm">Cancelar</button>
               </div>
             </div>
           ) : (
@@ -531,6 +541,7 @@ export default function ArtistDetailPage({
                         work={work}
                         onSave={handleSaveWork}
                         onCancel={() => setEditingWorkId(null)}
+                        saving={savingWork}
                       />
                     ) : (
                       <>
