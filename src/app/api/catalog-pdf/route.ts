@@ -486,30 +486,41 @@ export async function GET(req: NextRequest) {
 </body>
 </html>`;
 
-    // Use puppeteer-core to generate PDF directly
-    const browser = await launchBrowser();
-
+    // Try to generate PDF with Puppeteer
     try {
-      const page = await browser.newPage();
-      await page.setContent(html, {
-        waitUntil: "networkidle2",
-        timeout: 60000,
-      });
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: { top: "0", right: "0", bottom: "0", left: "0" },
-      });
+      const browser = await launchBrowser();
+      try {
+        const page = await browser.newPage();
+        await page.setContent(html, {
+          waitUntil: "networkidle2",
+          timeout: 60000,
+        });
+        const pdfBuffer = await page.pdf({
+          format: "A4",
+          printBackground: true,
+          margin: { top: "0", right: "0", bottom: "0", left: "0" },
+        });
 
-      return new NextResponse(Buffer.from(pdfBuffer), {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition":
-            'attachment; filename="catalogo-art-on-the-wall.pdf"',
-        },
+        return new NextResponse(Buffer.from(pdfBuffer), {
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition":
+              'attachment; filename="catalogo-art-on-the-wall.pdf"',
+          },
+        });
+      } finally {
+        await browser.close();
+      }
+    } catch (pdfError: any) {
+      console.error("Puppeteer PDF failed, falling back to HTML:", pdfError);
+      // Fallback: return printable HTML so user can print-to-PDF manually
+      const printHtml = html.replace(
+        "</body>",
+        '<script>window.onload=function(){window.print();};</script></body>',
+      );
+      return new NextResponse(printHtml, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
       });
-    } finally {
-      await browser.close();
     }
   } catch (error: any) {
     console.error("PDF generation error:", error);

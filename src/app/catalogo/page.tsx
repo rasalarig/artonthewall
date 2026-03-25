@@ -80,15 +80,29 @@ export default function CatalogoPage() {
       const res = await fetch("/api/catalog-pdf", { signal: controller.signal });
       clearTimeout(timeoutId);
       if (!res.ok) throw new Error("Erro ao gerar PDF");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "catalogo-art-on-the-wall.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+
+      const contentType = res.headers.get("content-type") || "";
+
+      if (contentType.includes("application/pdf")) {
+        // Direct PDF download
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "catalogo-art-on-the-wall.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } else {
+        // HTML fallback - open in new tab for printing
+        const html = await res.text();
+        const w = window.open("", "_blank");
+        if (w) {
+          w.document.write(html);
+          w.document.close();
+        }
+      }
     } catch (e: any) {
       alert(e.message || "Erro ao exportar PDF");
     } finally {
@@ -287,7 +301,7 @@ export default function CatalogoPage() {
                   </h2>
 
                   {/* Expanded details on hover */}
-                  <div className="mt-1 grid max-h-0 gap-1 overflow-hidden transition-all duration-300 group-hover:mt-3 group-hover:max-h-40">
+                  <div className="mt-3 grid gap-1 sm:mt-1 sm:max-h-0 sm:overflow-hidden sm:transition-all sm:duration-300 sm:group-hover:mt-3 sm:group-hover:max-h-40">
                     <span className="text-sm text-accent-pink font-bold">
                       {work.artistName}
                     </span>

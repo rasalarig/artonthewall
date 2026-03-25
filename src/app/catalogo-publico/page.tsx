@@ -203,7 +203,7 @@ export default function CatalogoPublicoPage() {
                     </h2>
 
                     {/* Expanded details on hover */}
-                    <div className="mt-1 grid max-h-0 gap-1 overflow-hidden transition-all duration-300 group-hover:mt-3 group-hover:max-h-40">
+                    <div className="mt-3 grid gap-1 sm:mt-1 sm:max-h-0 sm:overflow-hidden sm:transition-all sm:duration-300 sm:group-hover:mt-3 sm:group-hover:max-h-40">
                       <span className="text-sm text-accent-pink font-bold">
                         {work.artistName}
                       </span>
