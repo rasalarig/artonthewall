@@ -8,6 +8,7 @@ import { formatBRL, getWorkImages, compressImage } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
+import type { FilterPreset } from "@/lib/imageFilter";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -212,7 +213,7 @@ export default function ArtistDetailPage({
 }) {
   const { slug } = React.use(params);
   const router = useRouter();
-  const { artists, getArtistBySlug, upsertArtist, removeArtist, editWork, removeWork, isLoading } = useCatalog();
+  const { artists, getArtistBySlug, upsertArtist, removeArtist, editWork, removeWork, isLoading, imageFilter, updateImageFilter } = useCatalog();
   const artist = getArtistBySlug(slug);
 
   /* Edit artist state */
@@ -540,6 +541,8 @@ export default function ArtistDetailPage({
                             images={workImages}
                             alt={work.title}
                             height={260}
+                            activeFilter={imageFilter as FilterPreset}
+                            onFilterChange={(preset) => updateImageFilter(preset)}
                           />
                         )}
 

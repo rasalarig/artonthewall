@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
+import { getCSSFilter } from "@/lib/imageFilter";
 import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
@@ -42,7 +43,7 @@ function accentColor(index: number): string {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function Home() {
-  const { artists, artworks, isLoading } = useCatalog();
+  const { artists, artworks, isLoading, imageFilter } = useCatalog();
 
   if (isLoading) return <Loading />;
 
@@ -150,7 +151,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {featured.map((artist, i) => (
-              <ArtistCard key={artist.id} artist={artist} index={i} />
+              <ArtistCard key={artist.id} artist={artist} index={i} imageFilter={imageFilter} />
             ))}
           </div>
         </div>
@@ -187,7 +188,7 @@ export default function Home() {
           <div className="shrink-0 w-[max(0px,calc((100vw-72rem)/2))]" />
 
           {artworks.slice(0, 20).map((work, i) => (
-            <WorkCard key={work.id} work={work} index={i} />
+            <WorkCard key={work.id} work={work} index={i} imageFilter={imageFilter} />
           ))}
 
           {/* right spacer */}
@@ -234,7 +235,7 @@ export default function Home() {
 /*  Sub-components                                                     */
 /* ------------------------------------------------------------------ */
 
-function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
+function ArtistCard({ artist, index, imageFilter }: { artist: Artist; index: number; imageFilter: string }) {
   const delay = 0.3 + index * 0.1;
 
   return (
@@ -258,6 +259,7 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
               src={firstImage}
               alt={artist.name}
               className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: getCSSFilter(imageFilter) }}
             />
           ) : null;
         })()}
@@ -296,9 +298,11 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
 function WorkCard({
   work,
   index,
+  imageFilter,
 }: {
   work: Artwork & { artistName: string };
   index: number;
+  imageFilter: string;
 }) {
   const delay = 0.15 + index * 0.05;
 
@@ -322,6 +326,7 @@ function WorkCard({
               src={images[0]}
               alt={work.title}
               className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: getCSSFilter(imageFilter) }}
             />
           ) : null;
         })()}

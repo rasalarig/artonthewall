@@ -5,6 +5,7 @@ import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
+import type { FilterPreset } from "@/lib/imageFilter";
 
 /* ------------------------------------------------------------------ */
 /*  Price range helpers                                                */
@@ -29,7 +30,7 @@ const PRICE_RANGES: PriceRange[] = [
 /* ------------------------------------------------------------------ */
 
 export default function CatalogoPage() {
-  const { artists, artworks, isLoading, markupPercentage } = useCatalog();
+  const { artists, artworks, isLoading, markupPercentage, imageFilter, updateImageFilter } = useCatalog();
 
   /* Filter state */
   const [artistFilter, setArtistFilter] = useState<string>("");
@@ -69,6 +70,32 @@ export default function CatalogoPage() {
     setPriceRangeIdx(0);
   }
 
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  async function handleExportPDF() {
+    setPdfLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 180000);
+      const res = await fetch("/api/catalog-pdf", { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error("Erro ao gerar PDF");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "catalogo-art-on-the-wall.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert(e.message || "Erro ao exportar PDF");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
   if (isLoading) return <Loading />;
 
   return (
@@ -87,6 +114,65 @@ export default function CatalogoPage() {
         >
           {artworks.length} {artworks.length === 1 ? "obra" : "obras"} no acervo
         </p>
+        <div
+          className="mt-6 flex flex-wrap items-center justify-center gap-3"
+          style={{ animation: "fadeInUp 0.7s ease-out 0.3s both" }}
+        >
+          <button
+            onClick={handleExportPDF}
+            disabled={pdfLoading}
+            className="inline-flex items-center gap-2 rounded-full border border-accent text-accent hover:bg-accent hover:text-black font-bold px-6 py-2 text-sm transition disabled:opacity-60 disabled:cursor-wait"
+          >
+            {pdfLoading ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
+                </svg>
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Exportar PDF
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => window.open("/catalogo-publico", "_blank")}
+            className="inline-flex items-center gap-2 rounded-full border border-white text-white hover:bg-white hover:text-black font-bold px-6 py-2 text-sm transition"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+            Catalogo Web
+          </button>
+        </div>
       </header>
 
       {/* ---- Filter bar ---- */}
@@ -189,6 +275,8 @@ export default function CatalogoPage() {
                     images={workImages}
                     alt={work.title}
                     height={placeholderH}
+                    activeFilter={imageFilter as FilterPreset}
+                    onFilterChange={(preset) => updateImageFilter(preset)}
                   />
                 )}
 

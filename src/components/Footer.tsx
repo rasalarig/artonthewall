@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const footerLinks = [
   { href: "/catalogo", label: "Catalogo" },
@@ -7,6 +10,11 @@ const footerLinks = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on public catalog page
+  if (pathname === "/catalogo-publico") return null;
+
   return (
     <footer className="mt-auto border-t border-gray bg-black">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

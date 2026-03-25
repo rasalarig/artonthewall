@@ -90,15 +90,16 @@ export async function deleteWorkApi(id: string): Promise<void> {
 
 // ---- Settings ----
 
-export async function fetchSettings(): Promise<{ markupPercentage: number }> {
+export async function fetchSettings(): Promise<{ markupPercentage: number; imageFilter: string }> {
   const res = await fetch(`${BASE}/settings`);
   if (!res.ok) throw new Error("Failed to fetch settings");
   return res.json();
 }
 
 export async function updateSettings(data: {
-  markupPercentage: number;
-}): Promise<{ markupPercentage: number }> {
+  markupPercentage?: number;
+  imageFilter?: string;
+}): Promise<{ markupPercentage: number; imageFilter: string }> {
   const res = await fetch(`${BASE}/settings`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

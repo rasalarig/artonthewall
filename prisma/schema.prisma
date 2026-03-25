@@ -34,4 +34,5 @@ model Artwork {
 model Settings {
   id               String @id @default("global")
   markupPercentage Float  @default(30)
+  imageFilter      String @default("original")
 }
