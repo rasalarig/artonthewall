@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
+import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 
 /* ------------------------------------------------------------------ */
@@ -28,7 +29,7 @@ const PRICE_RANGES: PriceRange[] = [
 /* ------------------------------------------------------------------ */
 
 export default function CatalogoPage() {
-  const { artists, artworks } = useCatalog();
+  const { artists, artworks, isLoading, markupPercentage } = useCatalog();
 
   /* Filter state */
   const [artistFilter, setArtistFilter] = useState<string>("");
@@ -51,13 +52,13 @@ export default function CatalogoPage() {
       if (artistFilter && w.artistId !== artistFilter) return false;
       if (techniqueFilter && w.technique !== techniqueFilter) return false;
       if (range.min !== null || range.max !== null) {
-        const v = applyMarkup(w.value) ?? 0;
+        const v = applyMarkup(w.value, markupPercentage) ?? 0;
         if (range.min !== null && v < range.min) return false;
         if (range.max !== null && v > range.max) return false;
       }
       return true;
     });
-  }, [artworks, artistFilter, techniqueFilter, priceRangeIdx]);
+  }, [artworks, artistFilter, techniqueFilter, priceRangeIdx, markupPercentage]);
 
   const hasActiveFilters =
     artistFilter !== "" || techniqueFilter !== "" || priceRangeIdx !== 0;
@@ -67,6 +68,8 @@ export default function CatalogoPage() {
     setTechniqueFilter("");
     setPriceRangeIdx(0);
   }
+
+  if (isLoading) return <Loading />;
 
   return (
     <div className="flex flex-1 flex-col px-4 py-16 sm:px-8 lg:px-16">
@@ -203,7 +206,7 @@ export default function CatalogoPage() {
                     <span className="text-sm text-muted">{work.technique}</span>
                     <span className="text-sm text-muted">{work.size}</span>
                     <span className="text-sm font-bold text-accent">
-                      {formatBRL(applyMarkup(work.value))}
+                      {formatBRL(applyMarkup(work.value, markupPercentage))}
                     </span>
                     {work.value !== null && work.value !== 0 && (
                       <span className="text-[10px] text-muted/50 italic">

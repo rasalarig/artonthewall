@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL } from "@/lib/catalog";
+import { Loading } from "@/components/Loading";
 import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
@@ -41,7 +42,9 @@ function accentColor(index: number): string {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function Home() {
-  const { artists, artworks } = useCatalog();
+  const { artists, artworks, isLoading } = useCatalog();
+
+  if (isLoading) return <Loading />;
 
   // Top 6 artists by number of works
   const featured = [...artists]

@@ -4,19 +4,7 @@ import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
 import { compressImage } from "@/lib/catalog";
-import type { Artist, Artwork } from "@/types";
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-function createSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+import { Loading } from "@/components/Loading";
 
 /* ------------------------------------------------------------------ */
 /*  Tab type                                                           */
@@ -38,7 +26,7 @@ function CadastrarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedArtistId = searchParams.get("artistId") ?? "";
-  const { artists, upsertArtist } = useCatalog();
+  const { artists, addArtist, addWork, isLoading } = useCatalog();
   const [activeTab, setActiveTab] = useState<Tab>(preselectedArtistId ? "obra" : "artista");
 
   /* ---- Artist form state ---- */
@@ -85,7 +73,7 @@ function CadastrarContent() {
   }
 
   /* ---- Artist submit ---- */
-  function handleArtistSubmit(e: React.FormEvent) {
+  async function handleArtistSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
@@ -102,22 +90,21 @@ function CadastrarContent() {
     }
 
     setArtistSubmitting(true);
-    const slug = createSlug(artistName.trim());
-    const newArtist: Artist = {
-      id: crypto.randomUUID(),
-      name: artistName.trim(),
-      slug,
-      characteristics,
-      works: [],
-    };
+    try {
+      const result = await addArtist({
+        name: artistName.trim(),
+        characteristics,
+      });
+      setArtistSuccess(true);
+      setArtistSubmitting(false);
 
-    upsertArtist(newArtist);
-    setArtistSuccess(true);
-    setArtistSubmitting(false);
-
-    setTimeout(() => {
-      router.push(`/artistas/${slug}`);
-    }, 2000);
+      setTimeout(() => {
+        router.push(`/artistas/${result.slug}`);
+      }, 2000);
+    } catch (err) {
+      setArtistSubmitting(false);
+      alert(err instanceof Error ? err.message : "Erro ao cadastrar artista");
+    }
   }
 
   /* ---- Image upload handler (multi) ---- */
@@ -146,7 +133,7 @@ function CadastrarContent() {
   }
 
   /* ---- Artwork submit ---- */
-  function handleObraSubmit(e: React.FormEvent) {
+  async function handleObraSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
@@ -172,34 +159,26 @@ function CadastrarContent() {
     const artist = artists.find((a) => a.id === selectedArtistId);
     if (!artist) return;
 
-    const newWork: Artwork = {
-      id: crypto.randomUUID(),
-      artistId: artist.id,
-      title: obraTitle.trim(),
-      technique: obraTechnique.trim(),
-      size: obraSize.trim(),
-      value: obraValue.trim() ? parseFloat(obraValue) : null,
-      description: obraDescription.trim() || undefined,
-      images: obraImages.length > 0 ? obraImages : undefined,
-    };
-
-    const updatedArtist: Artist = {
-      ...artist,
-      works: [...artist.works, newWork],
-    };
-
-    const success = upsertArtist(updatedArtist);
-    if (!success) {
+    try {
+      await addWork({
+        artistId: artist.id,
+        title: obraTitle.trim(),
+        technique: obraTechnique.trim(),
+        size: obraSize.trim(),
+        value: obraValue.trim() ? parseFloat(obraValue) : null,
+        description: obraDescription.trim() || undefined,
+        images: obraImages.length > 0 ? obraImages : undefined,
+      });
+      setObraSuccess(true);
       setObraSubmitting(false);
-      alert("Erro ao salvar: armazenamento cheio. Tente remover algumas imagens ou reduzir o tamanho das fotos.");
-      return;
-    }
-    setObraSuccess(true);
-    setObraSubmitting(false);
 
-    setTimeout(() => {
-      router.push(`/artistas/${artist.slug}`);
-    }, 2000);
+      setTimeout(() => {
+        router.push(`/artistas/${artist.slug}`);
+      }, 2000);
+    } catch (err) {
+      setObraSubmitting(false);
+      alert(err instanceof Error ? err.message : "Erro ao cadastrar obra");
+    }
   }
 
   /* ---- Reset form state when switching tabs ---- */
@@ -207,6 +186,8 @@ function CadastrarContent() {
     setArtistErrors({});
     setObraErrors({});
   }, [activeTab]);
+
+  if (isLoading) return <Loading />;
 
   /* ---- Tab indicator position ---- */
   const tabs: { key: Tab; label: string }[] = [
@@ -324,7 +305,7 @@ function CadastrarContent() {
                   Caracteristicas
                 </label>
 
-                {/* Tags display — clean dark pills */}
+                {/* Tags display -- clean dark pills */}
                 {characteristics.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     {characteristics.map((tag) => (

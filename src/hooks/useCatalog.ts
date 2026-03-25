@@ -1,97 +1,124 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
-import { Artist } from "@/types";
+import useSWR, { mutate as globalMutate } from "swr";
+import { useCallback } from "react";
+import type { Artist, Artwork } from "@/types";
 import {
-  getAllArtists,
-  getArtistBySlug,
-  getArtistById,
-  getAllArtworks,
-  saveArtist,
-  deleteArtist,
-  resetToSeedData,
-  getMarkupPercentage,
-  setMarkupPercentage,
-} from "@/lib/catalog";
+  fetchArtists,
+  createArtist,
+  updateArtist,
+  deleteArtistApi,
+  createWork,
+  updateWork,
+  deleteWorkApi,
+  fetchSettings,
+  updateSettings,
+} from "@/lib/api";
 
-const STORAGE_KEY = "artes-dan-artists";
+const ARTISTS_KEY = "/api/artists";
+const SETTINGS_KEY = "/api/settings";
 
-/**
- * Subscribe to localStorage changes so the catalog re-renders
- * when data is updated (including from other tabs).
- */
-function subscribe(callback: () => void): () => void {
-  // Listen for storage events from other tabs
-  window.addEventListener("storage", callback);
-
-  // Listen for custom events from same-tab mutations
-  window.addEventListener("catalog-updated", callback);
-
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener("catalog-updated", callback);
-  };
-}
-
-const MARKUP_STORAGE_KEY = "artes-dan-markup";
-
-function getSnapshot(): string {
-  if (typeof window === "undefined") return "";
-  const artists = localStorage.getItem(STORAGE_KEY) ?? "";
-  const markup = localStorage.getItem(MARKUP_STORAGE_KEY) ?? "";
-  return artists + "|" + markup;
-}
-
-function getServerSnapshot(): string {
-  return "";
-}
-
-/** Dispatch a custom event so same-tab listeners are notified. */
-function notifyUpdate(): void {
-  window.dispatchEvent(new Event("catalog-updated"));
-}
-
-/**
- * React hook that provides reactive access to the art catalog.
- * Automatically re-renders when localStorage data changes.
- */
 export function useCatalog() {
-  // This triggers re-renders when localStorage changes
-  useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { data: artists = [], isLoading: loadingArtists } = useSWR<Artist[]>(
+    ARTISTS_KEY,
+    fetchArtists,
+  );
 
-  const artists = getAllArtists();
-  const artworks = getAllArtworks();
+  const { data: settings, isLoading: loadingSettings } = useSWR<{
+    markupPercentage: number;
+  }>(SETTINGS_KEY, fetchSettings);
 
-  const upsertArtist = useCallback((artist: Artist): boolean => {
-    const success = saveArtist(artist);
-    notifyUpdate();
-    return success;
+  // Flatten all artworks from all artists
+  const artworks = artists.flatMap((a) =>
+    a.works.map((w: Artwork) => ({ ...w, artistName: a.name })),
+  );
+
+  // ---- Artist mutations ----
+  const addArtist = useCallback(
+    async (data: { name: string; characteristics: string[] }) => {
+      const result = await createArtist(data);
+      await globalMutate(ARTISTS_KEY);
+      return result;
+    },
+    [],
+  );
+
+  const upsertArtist = useCallback(
+    async (
+      id: string,
+      data: Partial<{ name: string; characteristics: string[] }>,
+    ) => {
+      const result = await updateArtist(id, data);
+      await globalMutate(ARTISTS_KEY);
+      return result;
+    },
+    [],
+  );
+
+  const removeArtist = useCallback(async (id: string) => {
+    await deleteArtistApi(id);
+    await globalMutate(ARTISTS_KEY);
   }, []);
 
-  const removeArtist = useCallback((id: string) => {
-    deleteArtist(id);
-    notifyUpdate();
+  // ---- Work mutations ----
+  const addWork = useCallback(
+    async (data: Parameters<typeof createWork>[0]) => {
+      const result = await createWork(data);
+      await globalMutate(ARTISTS_KEY);
+      return result;
+    },
+    [],
+  );
+
+  const editWork = useCallback(
+    async (id: string, data: Partial<Artwork>) => {
+      const result = await updateWork(id, data);
+      await globalMutate(ARTISTS_KEY);
+      return result;
+    },
+    [],
+  );
+
+  const removeWork = useCallback(async (id: string) => {
+    await deleteWorkApi(id);
+    await globalMutate(ARTISTS_KEY);
   }, []);
 
-  const reset = useCallback(() => {
-    resetToSeedData();
-    notifyUpdate();
+  // ---- Settings ----
+  const markupPercentage = settings?.markupPercentage ?? 0.3;
+
+  const updateMarkup = useCallback(async (value: number) => {
+    await updateSettings({ markupPercentage: value });
+    await globalMutate(SETTINGS_KEY);
   }, []);
 
-  const updateMarkup = useCallback((value: number) => {
-    setMarkupPercentage(value);
-    notifyUpdate();
-  }, []);
+  // Helper: find artist by slug from cached data
+  const getArtistBySlug = useCallback(
+    (slug: string) => artists.find((a) => a.slug === slug),
+    [artists],
+  );
+
+  const getArtistById = useCallback(
+    (id: string) => artists.find((a) => a.id === id),
+    [artists],
+  );
 
   return {
     artists,
     artworks,
-    getArtistBySlug,
-    getArtistById,
+    isLoading: loadingArtists || loadingSettings,
+    // Artist operations
+    addArtist,
     upsertArtist,
     removeArtist,
-    reset,
-    markupPercentage: getMarkupPercentage(),
+    getArtistBySlug,
+    getArtistById,
+    // Work operations
+    addWork,
+    editWork,
+    removeWork,
+    // Settings
+    markupPercentage,
     updateMarkup,
   };
 }

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
 import { getWorkImages, formatBRL, applyMarkup } from "@/lib/catalog";
+import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
 
@@ -21,7 +22,7 @@ interface CarouselSlide {
 /* ------------------------------------------------------------------ */
 /*  ArtistCardCarousel — inline carousel with work info overlay        */
 /* ------------------------------------------------------------------ */
-function ArtistCardCarousel({ slides }: { slides: CarouselSlide[] }) {
+function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlide[]; markupPercentage: number }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const total = slides.length;
@@ -108,7 +109,7 @@ function ArtistCardCarousel({ slides }: { slides: CarouselSlide[] }) {
             {current.technique}
           </p>
           <p className="text-accent text-xs font-semibold">
-            {formatBRL(applyMarkup(current.value))}
+            {formatBRL(applyMarkup(current.value, markupPercentage))}
           </p>
         </div>
 
@@ -156,8 +157,10 @@ function buildSlides(works: Artwork[]): CarouselSlide[] {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function ArtistasPage() {
-  const { artists } = useCatalog();
+  const { artists, isLoading, markupPercentage } = useCatalog();
   const [search, setSearch] = useState("");
+
+  if (isLoading) return <Loading />;
 
   const filtered = artists.filter((a) =>
     a.name.toLowerCase().includes(search.toLowerCase()),
@@ -217,7 +220,7 @@ export default function ArtistasPage() {
                   {/* Image area */}
                   <div className="relative transition-all duration-700 group-hover:scale-105">
                     {hasImages ? (
-                      <ArtistCardCarousel slides={slides} />
+                      <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} />
                     ) : (
                       <div className="h-40 md:h-48 w-full bg-surface flex items-center justify-center">
                         <span className="text-muted text-sm font-medium">

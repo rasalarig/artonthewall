@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages, compressImage } from "@/lib/catalog";
+import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
-import type { Artist, Artwork } from "@/types";
+import type { Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -26,15 +27,6 @@ function artistGradient(name: string): string {
   const hue2 = (h * 7 + 120) % 360;
   const hue3 = (h * 13 + 240) % 360;
   return `linear-gradient(135deg, hsl(${hue1} 85% 25%) 0%, hsl(${hue2} 75% 30%) 50%, hsl(${hue3} 65% 20%) 100%)`;
-}
-
-function createSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }
 
 const inputClasses =
@@ -137,7 +129,14 @@ function EditWorkForm({
   onCancel,
 }: {
   work: Artwork;
-  onSave: (updated: Artwork) => void;
+  onSave: (data: {
+    title: string;
+    technique: string;
+    size: string;
+    value: number | null;
+    description?: string;
+    images?: string[];
+  }) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState(work.title);
@@ -159,14 +158,12 @@ function EditWorkForm({
       return;
     }
     onSave({
-      ...work,
       title: title.trim(),
       technique: technique.trim(),
       size: size.trim(),
       value: value.trim() ? parseFloat(value) : null,
       description: description.trim() || undefined,
       images: images.length > 0 ? images : undefined,
-      image: undefined,
     });
   }
 
@@ -215,7 +212,7 @@ export default function ArtistDetailPage({
 }) {
   const { slug } = React.use(params);
   const router = useRouter();
-  const { artists, getArtistBySlug, upsertArtist, removeArtist } = useCatalog();
+  const { artists, getArtistBySlug, upsertArtist, removeArtist, editWork, removeWork, isLoading } = useCatalog();
   const artist = getArtistBySlug(slug);
 
   /* Edit artist state */
@@ -262,7 +259,7 @@ export default function ArtistDetailPage({
     }
   }
 
-  function saveArtistEdit() {
+  async function saveArtistEdit() {
     if (!artist) return;
     const errs: Record<string, string> = {};
     if (!editName.trim()) errs.name = "Nome e obrigatorio";
@@ -271,53 +268,61 @@ export default function ArtistDetailPage({
       setEditArtistErrors(errs);
       return;
     }
-    const newSlug = createSlug(editName.trim());
-    const updated: Artist = {
-      ...artist,
-      name: editName.trim(),
-      slug: newSlug,
-      characteristics: editChars,
-    };
-    upsertArtist(updated);
-    setEditingArtist(false);
-    if (newSlug !== slug) {
-      router.push(`/artistas/${newSlug}`);
+    try {
+      const result = await upsertArtist(artist.id, {
+        name: editName.trim(),
+        characteristics: editChars,
+      });
+      setEditingArtist(false);
+      if (result.slug !== slug) {
+        router.push(`/artistas/${result.slug}`);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao salvar artista");
     }
   }
 
   /* ---- Delete artist ---- */
-  function handleDeleteArtist() {
+  async function handleDeleteArtist() {
     if (!artist) return;
     if (!window.confirm(`Tem certeza que deseja excluir o artista "${artist.name}" e todas as suas obras?`)) return;
-    removeArtist(artist.id);
-    router.push("/artistas");
+    try {
+      await removeArtist(artist.id);
+      router.push("/artistas");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao excluir artista");
+    }
   }
 
   /* ---- Save edited work ---- */
-  function handleSaveWork(updated: Artwork) {
-    if (!artist) return;
-    const updatedArtist: Artist = {
-      ...artist,
-      works: artist.works.map((w) => (w.id === updated.id ? updated : w)),
-    };
-    const success = upsertArtist(updatedArtist);
-    if (!success) {
-      alert("Erro ao salvar: armazenamento cheio. Tente remover algumas imagens ou reduzir o tamanho das fotos.");
-      return;
+  async function handleSaveWork(data: {
+    title: string;
+    technique: string;
+    size: string;
+    value: number | null;
+    description?: string;
+    images?: string[];
+  }) {
+    if (!editingWorkId) return;
+    try {
+      await editWork(editingWorkId, data);
+      setEditingWorkId(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao salvar obra");
     }
-    setEditingWorkId(null);
   }
 
   /* ---- Delete work ---- */
-  function handleDeleteWork(workId: string, workTitle: string) {
-    if (!artist) return;
+  async function handleDeleteWork(workId: string, workTitle: string) {
     if (!window.confirm(`Tem certeza que deseja excluir a obra "${workTitle}"?`)) return;
-    const updatedArtist: Artist = {
-      ...artist,
-      works: artist.works.filter((w) => w.id !== workId),
-    };
-    upsertArtist(updatedArtist);
+    try {
+      await removeWork(workId);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao excluir obra");
+    }
   }
+
+  if (isLoading) return <Loading />;
 
   /* ---- 404: artist not found ---- */
   if (!artist) {

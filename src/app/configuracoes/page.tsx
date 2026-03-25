@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL } from "@/lib/catalog";
+import { Loading } from "@/components/Loading";
 
 export default function ConfiguracoesPage() {
-  const { markupPercentage, updateMarkup } = useCatalog();
+  const { markupPercentage, updateMarkup, isLoading } = useCatalog();
 
   // Local input state — percentage as the user sees it (e.g. 30 for 30%)
   const [inputValue, setInputValue] = useState("");
@@ -20,11 +21,17 @@ export default function ConfiguracoesPage() {
   const previewBase = 100;
   const previewFinal = Math.round(previewBase * (1 + numericValue / 100));
 
-  function handleSave() {
-    updateMarkup(numericValue / 100);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    try {
+      await updateMarkup(numericValue / 100);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      alert("Erro ao salvar configuracoes");
+    }
   }
+
+  if (isLoading) return <Loading />;
 
   return (
     <div className="min-h-screen px-6 py-16 md:py-24">
