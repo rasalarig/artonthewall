@@ -269,7 +269,7 @@ export async function GET(req: NextRequest) {
     }
     .toc-name {
       font-weight: 600;
-      font-size: 15px;
+      font-size: 18px;
       padding: 8px 0;
       white-space: nowrap;
     }
@@ -280,7 +280,7 @@ export async function GET(req: NextRequest) {
     }
     .toc-page {
       font-weight: 700;
-      font-size: 15px;
+      font-size: 18px;
       color: #FFE600;
       padding: 8px 0;
       text-align: right;
@@ -315,7 +315,7 @@ export async function GET(req: NextRequest) {
     .tag {
       background: #1a1a1a;
       color: #FFE600;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       padding: 5px 14px;
       border-radius: 20px;
@@ -350,12 +350,12 @@ export async function GET(req: NextRequest) {
       width: 100%;
     }
     .gallery-images .gallery-img {
-      max-width: 240px;
+      max-width: 340px;
       flex: 1 1 auto;
     }
     .gallery-img {
       width: 100%;
-      max-width: 500px;
+      max-width: 700px;
       object-fit: contain;
       border-radius: 6px;
       border: 2px solid #222;
@@ -367,10 +367,10 @@ export async function GET(req: NextRequest) {
       text-align: center;
     }
     .info-title {
-      font-size: 13px;
+      font-size: 18px;
       font-weight: 700;
       color: #fff;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       line-height: 1.3;
     }
     .info-label {
@@ -378,24 +378,24 @@ export async function GET(req: NextRequest) {
       color: #ccc;
     }
     .info-technique {
-      font-size: 10px;
+      font-size: 14px;
       font-style: italic;
       color: #999;
       line-height: 1.4;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
     .info-dimensions {
-      font-size: 10px;
+      font-size: 14px;
       color: #999;
       line-height: 1.4;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
     .info-price {
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       color: #FFE600;
       line-height: 1.4;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
     .no-works {
       color: #555;
@@ -469,7 +469,7 @@ export async function GET(req: NextRequest) {
   <div class="cover">
     <div class="catalog-label">Catalogo Digital</div>
     <h1>ART ON THE WALL</h1>
-    <p class="subtitle">Expo Coletiva &bull; Arte Urbana &amp; Graffiti</p>
+    <p class="subtitle">Expo Coletiva &bull; Arte Urbana</p>
     <div class="yellow-divider"></div>
   </div>
 
