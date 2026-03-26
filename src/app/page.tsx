@@ -64,7 +64,7 @@ export default function Home() {
         <div
           className="pointer-events-none absolute top-[15%] left-[10%] w-32 h-40 md:w-48 md:h-56 rounded-lg opacity-60"
           style={{
-            background: "linear-gradient(135deg, #FFE600 0%, #FF9100 100%)",
+            background: "linear-gradient(135deg, #5F0B6C 0%, #8B1A9E 100%)",
             transform: "rotate(-6deg)",
             animation: "fadeIn 1s ease-out 0.5s both",
           }}
@@ -72,7 +72,7 @@ export default function Home() {
         <div
           className="pointer-events-none absolute top-[25%] right-[8%] w-28 h-36 md:w-40 md:h-48 rounded-lg opacity-50"
           style={{
-            background: "linear-gradient(135deg, #4A90FF 0%, #00C853 100%)",
+            background: "linear-gradient(135deg, #DDD657 0%, #E8E07A 100%)",
             transform: "rotate(4deg)",
             animation: "fadeIn 1s ease-out 0.8s both",
           }}
@@ -80,7 +80,7 @@ export default function Home() {
         <div
           className="pointer-events-none absolute bottom-[20%] left-[55%] w-24 h-32 md:w-36 md:h-44 rounded-lg opacity-40"
           style={{
-            background: "linear-gradient(135deg, #FF2D7B 0%, #FF3D00 100%)",
+            background: "linear-gradient(135deg, #C24068 0%, #E05585 100%)",
             transform: "rotate(-3deg)",
             animation: "fadeIn 1s ease-out 1.1s both",
           }}

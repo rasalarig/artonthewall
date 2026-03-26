@@ -2,7 +2,7 @@
 
 @theme inline {
   --color-background: #000000;
-  --color-foreground: #B8AFA6;
+  --color-foreground: #ffffff;
   --color-cement: #B8AFA6;
   --color-cement-light: #D4CCC4;
   --color-surface: #111111;
@@ -26,7 +26,7 @@ html {
 
 body {
   background: #000000;
-  color: #B8AFA6;
+  color: #ffffff;
   font-family: var(--font-body);
 }
 
