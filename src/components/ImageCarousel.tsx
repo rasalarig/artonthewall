@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { handleImageError } from "@/lib/catalog";
 
 /* ------------------------------------------------------------------ */
 /*  Chevron Arrow Button                                               */
@@ -119,6 +120,7 @@ export function Lightbox({
           src={images[currentIndex]}
           alt={`Imagem ${currentIndex + 1} de ${total}`}
           className="max-w-[95vw] max-h-[90vh] object-contain transition-opacity duration-300"
+          onError={handleImageError}
         />
       </div>
 
@@ -181,6 +183,7 @@ export function ImageCarousel({
               alt={`${alt} ${idx + 1}`}
               className="h-full w-full flex-shrink-0 object-cover"
               onClick={() => setLightboxOpen(true)}
+              onError={handleImageError}
             />
           ))}
         </div>

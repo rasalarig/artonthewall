@@ -105,3 +105,72 @@ h1, h2, h3, h4, h5, h6 {
   background: #fff;
   color: #000;
 }
+
+/* ============================================================
+   Safari 12 / iOS 12 compatibility layer
+   ============================================================ */
+
+/*
+ * 1. `inset` shorthand is not supported in Safari < 14.1.
+ *    Tailwind's `inset-0` generates `inset: 0`. We provide
+ *    top/right/bottom/left fallbacks so Safari 12 positions
+ *    these elements correctly.
+ *
+ *    We use the [class] selector to ensure these fallback rules
+ *    don't override when modern browsers read `inset`.
+ */
+@supports not (inset: 0) {
+  .inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+}
+
+/*
+ * 2. Flex `gap` is not supported in Safari < 14.1.
+ *    For browsers that don't support gap in flex, we apply
+ *    margin-based spacing to direct children. This uses
+ *    @supports to target only older browsers.
+ *
+ *    Common gap values used in this project:
+ *    gap-1 = 0.25rem, gap-2 = 0.5rem, gap-3 = 0.75rem,
+ *    gap-4 = 1rem, gap-5 = 1.25rem, gap-6 = 1.5rem, gap-8 = 2rem
+ */
+@supports not (gap: 1px) {
+  .gap-1 > * + * { margin-top: 0.25rem; margin-left: 0.25rem; }
+  .gap-2 > * + * { margin-top: 0.5rem; margin-left: 0.5rem; }
+  .gap-3 > * + * { margin-top: 0.75rem; margin-left: 0.75rem; }
+  .gap-4 > * + * { margin-top: 1rem; margin-left: 1rem; }
+  .gap-5 > * + * { margin-top: 1.25rem; margin-left: 1.25rem; }
+  .gap-6 > * + * { margin-top: 1.5rem; margin-left: 1.5rem; }
+  .gap-8 > * + * { margin-top: 2rem; margin-left: 2rem; }
+
+  /* For flex-col containers, only vertical margin is needed */
+  .flex-col.gap-1 > * + * { margin-left: 0; }
+  .flex-col.gap-2 > * + * { margin-left: 0; }
+  .flex-col.gap-3 > * + * { margin-left: 0; }
+  .flex-col.gap-4 > * + * { margin-left: 0; }
+  .flex-col.gap-5 > * + * { margin-left: 0; }
+  .flex-col.gap-6 > * + * { margin-left: 0; }
+  .flex-col.gap-8 > * + * { margin-left: 0; }
+
+  /* For flex-row containers, only horizontal margin is needed */
+  .flex-row.gap-1 > * + * { margin-top: 0; }
+  .flex-row.gap-2 > * + * { margin-top: 0; }
+  .flex-row.gap-3 > * + * { margin-top: 0; }
+  .flex-row.gap-4 > * + * { margin-top: 0; }
+  .flex-row.gap-5 > * + * { margin-top: 0; }
+  .flex-row.gap-6 > * + * { margin-top: 0; }
+  .flex-row.gap-8 > * + * { margin-top: 0; }
+
+  /* Default flex direction is row, so for bare .flex + .gap-N */
+  .flex:not(.flex-col).gap-1 > * + * { margin-top: 0; }
+  .flex:not(.flex-col).gap-2 > * + * { margin-top: 0; }
+  .flex:not(.flex-col).gap-3 > * + * { margin-top: 0; }
+  .flex:not(.flex-col).gap-4 > * + * { margin-top: 0; }
+  .flex:not(.flex-col).gap-5 > * + * { margin-top: 0; }
+  .flex:not(.flex-col).gap-6 > * + * { margin-top: 0; }
+  .flex:not(.flex-col).gap-8 > * + * { margin-top: 0; }
+}

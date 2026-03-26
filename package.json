@@ -22,7 +22,13 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
+  "browserslist": [
+    "defaults",
+    "iOS >= 12",
+    "Safari >= 12"
+  ],
   "devDependencies": {
+    "@csstools/postcss-cascade-layers": "^6.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -30,6 +36,7 @@
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "postcss-lightningcss": "^1.0.2",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"

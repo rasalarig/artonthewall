@@ -3,7 +3,7 @@
 import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
-import { compressImage } from "@/lib/catalog";
+import { compressImage, handleImageError } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 
 /* ------------------------------------------------------------------ */
@@ -107,25 +107,41 @@ function CadastrarContent() {
     }
   }
 
+  const [imageCompressing, setImageCompressing] = useState(false);
+
   /* ---- Image upload handler (multi) ---- */
-  function handleObraFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleObraFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    const promises = Array.from(files).map(
-      (file) =>
-        new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUri = reader.result as string;
-            compressImage(dataUri).then(resolve);
-          };
-          reader.readAsDataURL(file);
-        }),
-    );
-    Promise.all(promises).then((results) => {
-      setObraImages((prev) => [...prev, ...results]);
+    setImageCompressing(true);
+    try {
+      const promises = Array.from(files).map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const dataUri = reader.result as string;
+              if (!dataUri || !dataUri.startsWith("data:image/")) {
+                reject(new Error("Arquivo invalido"));
+                return;
+              }
+              compressImage(dataUri).then(resolve).catch(() => resolve(dataUri));
+            };
+            reader.onerror = () => reject(new Error("Erro ao ler arquivo"));
+            reader.readAsDataURL(file);
+          }),
+      );
+      const results = await Promise.all(promises);
+      const valid = results.filter((r) => r && r.length > 0);
+      if (valid.length > 0) {
+        setObraImages((prev) => [...prev, ...valid]);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao processar imagens");
+    } finally {
+      setImageCompressing(false);
       if (obraFileRef.current) obraFileRef.current.value = "";
-    });
+    }
   }
 
   function handleRemoveObraImage(index: number) {
@@ -578,6 +594,7 @@ function CadastrarContent() {
                           src={img}
                           alt={`Preview ${idx + 1}`}
                           className="h-32 w-auto rounded-lg object-cover border border-border"
+                          onError={handleImageError}
                         />
                         {!obraSuccess && (
                           <button
@@ -598,10 +615,15 @@ function CadastrarContent() {
                   accept="image/*"
                   multiple
                   onChange={handleObraFileChange}
-                  disabled={obraSuccess}
-                  className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all"
+                  disabled={obraSuccess || imageCompressing}
+                  className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all disabled:opacity-50"
                 />
-                {obraImages.length > 0 && (
+                {imageCompressing && (
+                  <p className="mt-2 text-xs text-accent animate-pulse">
+                    Comprimindo imagens...
+                  </p>
+                )}
+                {!imageCompressing && obraImages.length > 0 && (
                   <p className="mt-1 text-xs text-muted">
                     {obraImages.length} {obraImages.length === 1 ? "foto" : "fotos"} — selecione mais para adicionar
                   </p>

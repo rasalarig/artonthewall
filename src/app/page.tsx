@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getDisplayImageUrls, applyMarkup } from "@/lib/catalog";
+import { formatBRL, getDisplayImageUrls, applyMarkup, handleImageError } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import type { Artist, Artwork } from "@/types";
 
@@ -259,6 +259,7 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
               src={firstImage}
               alt={artist.name}
               className="absolute inset-0 w-full h-full object-cover"
+              onError={handleImageError}
             />
           ) : null;
         })()}
@@ -325,6 +326,7 @@ function WorkCard({
               src={images[0]}
               alt={work.title}
               className="absolute inset-0 w-full h-full object-cover"
+              onError={handleImageError}
             />
           ) : null;
         })()}

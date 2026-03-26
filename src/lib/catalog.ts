@@ -1,4 +1,22 @@
+import type React from "react";
 import type { Artwork } from "@/types";
+
+/**
+ * Fallback SVG placeholder shown when an artwork image fails to load.
+ * Used as a data URI to avoid external dependencies.
+ */
+export const IMAGE_FALLBACK =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23333' width='400' height='300'/%3E%3Ctext fill='%23666' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='16'%3EImagem indispon%C3%ADvel%3C/text%3E%3C/svg%3E";
+
+/**
+ * onError handler for <img> tags that shows the fallback placeholder.
+ * Usage: <img onError={handleImageError} ... />
+ */
+export function handleImageError(e: React.SyntheticEvent<HTMLImageElement>) {
+  const target = e.currentTarget;
+  target.onerror = null;
+  target.src = IMAGE_FALLBACK;
+}
 
 /**
  * Get the images array for an artwork, handling legacy `image` field.
@@ -20,12 +38,14 @@ export function getDisplayImageUrls(work: Artwork): string[] {
     : work.image
       ? [work.image]
       : [];
-  return images.map((img, index) => {
-    if (img.startsWith("data:")) {
-      return `/api/works/${work.id}/image/${index}`;
-    }
-    return img;
-  });
+  return images
+    .filter((img): img is string => typeof img === "string" && img.length > 0)
+    .map((img, index) => {
+      if (img.startsWith("data:")) {
+        return `/api/works/${work.id}/image/${index}`;
+      }
+      return img;
+    });
 }
 
 /**
@@ -56,16 +76,31 @@ export function formatBRL(value: number | null): string {
 
 /**
  * Convert a data URI to a Blob without using fetch (Safari 13+ compatible).
+ * Handles edge cases: malformed data URIs, missing comma, empty data.
  */
 function dataURItoBlob(dataUri: string): Blob {
-  const [header, base64Data] = dataUri.split(",");
-  const mime = header.match(/:(.*?);/)?.[1] || "image/jpeg";
-  const binary = atob(base64Data);
-  const array = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    array[i] = binary.charCodeAt(i);
+  const commaIndex = dataUri.indexOf(",");
+  if (commaIndex === -1) {
+    // Malformed data URI — return empty JPEG blob as fallback
+    return new Blob([], { type: "image/jpeg" });
   }
-  return new Blob([array], { type: mime });
+  const header = dataUri.slice(0, commaIndex);
+  const base64Data = dataUri.slice(commaIndex + 1);
+  if (!base64Data) {
+    return new Blob([], { type: "image/jpeg" });
+  }
+  const mime = header.match(/:(.*?);/)?.[1] || "image/jpeg";
+  try {
+    const binary = atob(base64Data);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i);
+    }
+    return new Blob([array], { type: mime });
+  } catch {
+    // Invalid base64 — return empty blob
+    return new Blob([], { type: mime });
+  }
 }
 
 /**
@@ -79,22 +114,39 @@ export async function compressImage(
   maxWidth = 800,
   quality = 0.5,
 ): Promise<string> {
-  // Try createImageBitmap first (Safari 15+, Chrome, Firefox)
-  // It handles EXIF orientation automatically
-  if (typeof createImageBitmap !== "undefined") {
-    try {
-      const blob = dataURItoBlob(dataUri);
-      const bmp = await createImageBitmap(blob);
-      const result = drawToCanvas(bmp, bmp.width, bmp.height, maxWidth, quality);
-      bmp.close();
-      if (result) return result;
-    } catch {
-      // Fall through to Image fallback
+  // Validate input is a data URI
+  if (!dataUri || !dataUri.startsWith("data:image/")) {
+    // Return as-is if it's a URL, or a fallback placeholder if truly invalid
+    if (dataUri && (dataUri.startsWith("http") || dataUri.startsWith("/"))) {
+      return dataUri;
     }
+    return dataUri || "";
   }
 
-  // Fallback: Image element (works on all browsers including Safari 13+)
-  return compressWithImage(dataUri, maxWidth, quality);
+  try {
+    // Try createImageBitmap first (Safari 15+, Chrome, Firefox)
+    // It handles EXIF orientation automatically
+    if (typeof createImageBitmap !== "undefined") {
+      try {
+        const blob = dataURItoBlob(dataUri);
+        if (blob.size > 0) {
+          const bmp = await createImageBitmap(blob);
+          const result = drawToCanvas(bmp, bmp.width, bmp.height, maxWidth, quality);
+          bmp.close();
+          if (result && result.startsWith("data:image/")) return result;
+        }
+      } catch {
+        // Fall through to Image fallback
+      }
+    }
+
+    // Fallback: Image element (works on all browsers including Safari 13+)
+    const result = await compressWithImage(dataUri, maxWidth, quality);
+    return result && result.startsWith("data:image/") ? result : dataUri;
+  } catch {
+    // If all compression fails, return original
+    return dataUri;
+  }
 }
 
 /** Draw an image source to a canvas and return JPEG data URI */

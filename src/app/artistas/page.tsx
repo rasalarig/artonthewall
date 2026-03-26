@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { getDisplayImageUrls, formatBRL, applyMarkup } from "@/lib/catalog";
+import { getDisplayImageUrls, formatBRL, applyMarkup, handleImageError } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
@@ -66,6 +66,7 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
               alt={slide.title}
               className="h-full w-full flex-shrink-0 object-cover cursor-pointer"
               onClick={openLightbox}
+              onError={handleImageError}
             />
           ))}
         </div>
