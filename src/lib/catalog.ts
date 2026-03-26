@@ -2,6 +2,28 @@ import type React from "react";
 import type { Artwork } from "@/types";
 
 /**
+ * Convert a HEIC/HEIF file to JPEG Blob using heic2any.
+ * Returns the original file if it's not HEIC or if conversion fails.
+ */
+export async function convertHeicIfNeeded(file: File): Promise<File> {
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+    file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+  if (!isHeic) return file;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const heic2any = ((await import('heic2any')) as any).default;
+    const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 }) as Blob;
+    const newName = file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg');
+    return new File([blob], newName, { type: 'image/jpeg' });
+  } catch (err) {
+    console.error('HEIC conversion failed:', err);
+    return file; // fallback: return original
+  }
+}
+
+/**
  * Fallback SVG placeholder shown when an artwork image fails to load.
  * Used as a data URI to avoid external dependencies.
  */
@@ -121,6 +143,26 @@ export async function compressImage(
       return dataUri;
     }
     return dataUri || "";
+  }
+
+  // Handle HEIC/HEIF data URIs by converting to JPEG first
+  if (dataUri.startsWith("data:image/heic") || dataUri.startsWith("data:image/heif")) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const heic2any = ((await import('heic2any')) as any).default;
+      const response = await fetch(dataUri);
+      const blob = await response.blob();
+      const jpegBlob = await heic2any({ blob, toType: 'image/jpeg', quality: 0.85 }) as Blob;
+      // Convert back to data URI
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(dataUri);
+        reader.readAsDataURL(jpegBlob);
+      });
+    } catch {
+      return dataUri;
+    }
   }
 
   try {

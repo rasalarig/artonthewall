@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMarkup, handleImageError } from "@/lib/catalog";
+import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMarkup, handleImageError, convertHeicIfNeeded } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
@@ -56,18 +56,23 @@ function MultiImageUpload({
     try {
       const promises = Array.from(files).map(
         (file) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const dataUri = reader.result as string;
-              if (!dataUri || !dataUri.startsWith("data:image/")) {
-                reject(new Error("Arquivo invalido"));
-                return;
-              }
-              compressImage(dataUri).then(resolve).catch(() => resolve(dataUri));
-            };
-            reader.onerror = () => reject(new Error("Erro ao ler arquivo"));
-            reader.readAsDataURL(file);
+          new Promise<string>(async (resolve, reject) => {
+            try {
+              const convertedFile = await convertHeicIfNeeded(file);
+              const reader = new FileReader();
+              reader.onload = () => {
+                const dataUri = reader.result as string;
+                if (!dataUri || !dataUri.startsWith("data:image/")) {
+                  reject(new Error("Arquivo invalido"));
+                  return;
+                }
+                compressImage(dataUri).then(resolve).catch(() => resolve(dataUri));
+              };
+              reader.onerror = () => reject(new Error("Erro ao ler arquivo"));
+              reader.readAsDataURL(convertedFile);
+            } catch (err) {
+              reject(err);
+            }
           }),
       );
       const results = await Promise.all(promises);
@@ -120,7 +125,7 @@ function MultiImageUpload({
           <input
             ref={fileRef}
             type="file"
-            accept="image/*"
+            accept="image/*,.heic,.heif"
             multiple
             onChange={handleFiles}
             disabled={compressing}
