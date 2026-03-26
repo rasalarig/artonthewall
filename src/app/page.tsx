@@ -92,7 +92,7 @@ export default function Home() {
           style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
         >
           <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-foreground">
-            Galeria de Artistas Urbanos
+            Expo Coletiva Art on The Wall
           </span>
         </h1>
 
@@ -126,7 +126,7 @@ export default function Home() {
       <section className="bg-accent py-10 md:py-14">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <p className="text-2xl md:text-4xl font-extrabold text-black tracking-tight">
-            {artists.length} Artistas &bull; {totalWorks}+ Obras &bull; Galeria de Artistas Urbanos
+            {artists.length} Artistas &bull; {totalWorks}+ Obras &bull; Expo Coletiva Art on The Wall
           </p>
         </div>
       </section>
