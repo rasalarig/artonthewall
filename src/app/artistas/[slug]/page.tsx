@@ -8,6 +8,7 @@ import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMarkup, handleImageError, convertHeicIfNeeded } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
+import { ImagePositionModal } from "@/components/ImagePositionModal";
 import type { Artwork } from "@/types";
 
 
@@ -256,6 +257,9 @@ export default function ArtistDetailPage({
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [savingWork, setSavingWork] = useState(false);
   const [savingArtist, setSavingArtist] = useState(false);
+
+  /* Crop/position modal state */
+  const [cropModal, setCropModal] = useState<{ workId: string; imageIndex: number; imageUrl: string } | null>(null);
 
   /* Hide/show work state */
   const [hiddenWorkMap, setHiddenWorkMap] = useState<Record<string, boolean>>({});
@@ -656,6 +660,7 @@ export default function ArtistDetailPage({
                               images={workImages}
                               alt={work.title}
                               height={260}
+                              imagePositions={work.imagePositions as Record<string, { x: number; y: number }> | undefined}
                             />
                           )}
 
@@ -710,6 +715,27 @@ export default function ArtistDetailPage({
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                               </svg>
                             </button>
+
+                            {/* Position/crop button */}
+                            {workImages.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCropModal({ workId: work.id, imageIndex: 0, imageUrl: workImages[0] });
+                                }}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
+                                aria-label="Ajustar posicao"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="#999" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="5 9 2 12 5 15" />
+                                  <polyline points="9 5 12 2 15 5" />
+                                  <polyline points="15 19 12 22 9 19" />
+                                  <polyline points="19 9 22 12 19 15" />
+                                  <line x1="2" y1="12" x2="22" y2="12" />
+                                  <line x1="12" y1="2" x2="12" y2="22" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
 
                           {/* Badges */}
@@ -837,6 +863,29 @@ export default function ArtistDetailPage({
           )}
         </nav>
       </section>
+
+      {/* Image position/crop modal */}
+      {cropModal && (
+        <ImagePositionModal
+          imageUrl={cropModal.imageUrl}
+          initialPosition={
+            ((artist?.works.find(w => w.id === cropModal.workId)?.imagePositions as Record<string, { x: number; y: number }>) || {})[String(cropModal.imageIndex)] || { x: 50, y: 50 }
+          }
+          onSave={async (pos) => {
+            const work = artist?.works.find(w => w.id === cropModal.workId);
+            const currentPositions = (work?.imagePositions as Record<string, { x: number; y: number }>) || {};
+            const updated = { ...currentPositions, [String(cropModal.imageIndex)]: pos };
+            await fetch(`/api/works/${cropModal.workId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imagePositions: updated }),
+            });
+            await globalMutate("/api/artists?all=true");
+            setCropModal(null);
+          }}
+          onClose={() => setCropModal(null)}
+        />
+      )}
     </div>
   );
 }

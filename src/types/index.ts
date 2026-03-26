@@ -10,6 +10,7 @@ export interface Artwork {
   images?: string[]; // base64 data URIs for uploaded photos
   hidden?: boolean;
   sold?: boolean;
+  imagePositions?: Record<string, { x: number; y: number }>;
 }
 
 export interface Artist {

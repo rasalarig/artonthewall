@@ -31,9 +31,10 @@ model Artwork {
   description String?
   images      String[] @default([])
   hidden      Boolean  @default(false)
-  sold        Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  sold            Boolean  @default(false)
+  imagePositions  Json?    @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Settings {

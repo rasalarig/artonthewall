@@ -294,6 +294,7 @@ export default function CatalogoPage() {
                       images={workImages}
                       alt={work.title}
                       height={placeholderH}
+                      imagePositions={work.imagePositions as Record<string, { x: number; y: number }> | undefined}
                     />
                   )}
                   {work.sold && (

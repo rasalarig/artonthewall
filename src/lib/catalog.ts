@@ -97,6 +97,18 @@ export function formatBRL(value: number | null): string {
 }
 
 /**
+ * Get the object-position CSS string for an artwork image.
+ * Returns "50% 50%" (center) if no custom position is set.
+ */
+export function getImagePosition(
+  work: { imagePositions?: Record<string, { x: number; y: number }> } | null | undefined,
+  imageIndex: number = 0,
+): string {
+  const pos = work?.imagePositions?.[String(imageIndex)];
+  return pos ? `${pos.x}% ${pos.y}%` : "50% 50%";
+}
+
+/**
  * Convert a data URI to a Blob without using fetch (Safari 13+ compatible).
  * Handles edge cases: malformed data URIs, missing comma, empty data.
  */

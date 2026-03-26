@@ -22,6 +22,7 @@ export async function PUT(
       data.description = description?.trim() || null;
     if (body.hidden !== undefined) data.hidden = body.hidden;
     if (body.sold !== undefined) data.sold = body.sold;
+    if (body.imagePositions !== undefined) data.imagePositions = body.imagePositions;
 
     // Handle images
     if (images !== undefined) {

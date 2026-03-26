@@ -143,11 +143,13 @@ export function ImageCarousel({
   alt,
   height,
   className,
+  imagePositions,
 }: {
   images: string[];
   alt: string;
   height: number;
   className?: string;
+  imagePositions?: Record<string, { x: number; y: number }>;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -176,16 +178,21 @@ export function ImageCarousel({
           className="flex h-full transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {images.map((img, idx) => (
-            <img
-              key={idx}
-              src={img}
-              alt={`${alt} ${idx + 1}`}
-              className="h-full w-full flex-shrink-0 object-cover"
-              onClick={() => setLightboxOpen(true)}
-              onError={handleImageError}
-            />
-          ))}
+          {images.map((img, idx) => {
+            const pos = imagePositions?.[String(idx)];
+            const objPos = pos ? `${pos.x}% ${pos.y}%` : "50% 50%";
+            return (
+              <img
+                key={idx}
+                src={img}
+                alt={`${alt} ${idx + 1}`}
+                className="h-full w-full flex-shrink-0 object-cover"
+                style={{ objectPosition: objPos }}
+                onClick={() => setLightboxOpen(true)}
+                onError={handleImageError}
+              />
+            );
+          })}
         </div>
 
         {/* Navigation arrows (only if multiple images) */}
