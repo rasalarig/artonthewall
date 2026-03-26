@@ -59,47 +59,52 @@ export default function Home() {
       {/* ============================================================ */}
       {/*  HERO — STRAAT-style massive typography                      */}
       {/* ============================================================ */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
-        {/* Floating decorative gradient squares */}
+      <section
+        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 60% at 20% 30%, rgba(160,150,140,0.4) 0%, transparent 50%),
+            radial-gradient(ellipse 60% 50% at 75% 70%, rgba(140,130,120,0.35) 0%, transparent 50%),
+            radial-gradient(ellipse 40% 40% at 50% 50%, rgba(170,160,150,0.25) 0%, transparent 45%),
+            radial-gradient(circle at 30% 80%, rgba(130,120,110,0.3) 0%, transparent 30%),
+            radial-gradient(circle at 80% 20%, rgba(150,140,130,0.25) 0%, transparent 25%),
+            radial-gradient(circle at 10% 10%, rgba(180,170,160,0.2) 0%, transparent 20%),
+            radial-gradient(circle at 90% 90%, rgba(120,112,105,0.3) 0%, transparent 20%),
+            linear-gradient(180deg, #C4BBB2 0%, #B8AFA6 30%, #ADA49B 60%, #B8AFA6 80%, #D4CCC4 100%)
+          `,
+        }}
+      >
+        {/* Subtle grain overlay for cement texture */}
         <div
-          className="pointer-events-none absolute top-[15%] left-[10%] w-32 h-40 md:w-48 md:h-56 rounded-lg opacity-60"
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
           style={{
-            background: "linear-gradient(135deg, #5F0B6C 0%, #8B1A9E 100%)",
-            transform: "rotate(-6deg)",
-            animation: "fadeIn 1s ease-out 0.5s both",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            backgroundSize: "200px 200px",
           }}
         />
+        {/* Secondary texture layer — subtle cracks/variation */}
         <div
-          className="pointer-events-none absolute top-[25%] right-[8%] w-28 h-36 md:w-40 md:h-48 rounded-lg opacity-50"
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
           style={{
-            background: "linear-gradient(135deg, #DDD657 0%, #E8E07A 100%)",
-            transform: "rotate(4deg)",
-            animation: "fadeIn 1s ease-out 0.8s both",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute bottom-[20%] left-[55%] w-24 h-32 md:w-36 md:h-44 rounded-lg opacity-40"
-          style={{
-            background: "linear-gradient(135deg, #C24068 0%, #E05585 100%)",
-            transform: "rotate(-3deg)",
-            animation: "fadeIn 1s ease-out 1.1s both",
+            backgroundImage: `
+              repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(100,90,80,0.15) 100px, transparent 101px),
+              repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(100,90,80,0.1) 80px, transparent 81px)
+            `,
           }}
         />
 
-        {/* Massive typography */}
-        <h1
-          className="relative z-10 text-center select-none max-w-6xl"
+        {/* Banner image */}
+        <img
+          src="/Banner_Catalogo.png"
+          alt="Expo Coletiva Art on The Wall"
+          className="relative z-10 w-full max-w-[700px] h-auto drop-shadow-2xl"
           style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
-        >
-          <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-foreground">
-            Expo Coletiva Art on The Wall
-          </span>
-        </h1>
+        />
 
         {/* Scroll indicator */}
         <div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted text-xs tracking-widest"
-          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 1.5s forwards" }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-xs tracking-widest"
+          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 1.5s forwards", color: "#6B6460" }}
         >
           <span className="uppercase">Scroll</span>
           <svg
