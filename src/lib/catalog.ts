@@ -37,34 +37,102 @@ export function formatBRL(value: number | null): string {
 
 /**
  * Compress a base64 data URI image using canvas.
- * Resizes to maxWidth (default 1200px) and re-encodes as JPEG at the given quality.
- * Must be called client-side only (uses Image, canvas).
+ * Uses createImageBitmap (handles EXIF orientation automatically) with
+ * fallback to Image() for older browsers. Limits canvas size for mobile.
  */
-export function compressImage(
+export async function compressImage(
   dataUri: string,
   maxWidth = 1200,
   quality = 0.7,
+): Promise<string> {
+  try {
+    // Convert data URI to blob for createImageBitmap
+    const response = await fetch(dataUri);
+    const blob = await response.blob();
+
+    // createImageBitmap automatically handles EXIF orientation
+    // and is more reliable on mobile browsers
+    let bmp: ImageBitmap;
+    try {
+      bmp = await createImageBitmap(blob);
+    } catch {
+      // Fallback: try with Image element
+      return compressWithImage(dataUri, maxWidth, quality);
+    }
+
+    const canvas = document.createElement("canvas");
+    let w = bmp.width;
+    let h = bmp.height;
+
+    if (w > maxWidth) {
+      const ratio = maxWidth / w;
+      w = maxWidth;
+      h = Math.round(h * ratio);
+    }
+
+    // Mobile canvas size safety limit (some browsers cap at ~4096x4096)
+    const MAX_DIM = 4096;
+    if (w > MAX_DIM || h > MAX_DIM) {
+      const scale = Math.min(MAX_DIM / w, MAX_DIM / h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bmp.close();
+      return dataUri;
+    }
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close();
+
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    // Ultimate fallback — return original
+    return dataUri;
+  }
+}
+
+/** Fallback compression using Image element for browsers without createImageBitmap */
+function compressWithImage(
+  dataUri: string,
+  maxWidth: number,
+  quality: number,
 ): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      if (img.width <= maxWidth) {
-        canvas.width = img.width;
-        canvas.height = img.height;
-      } else {
-        const ratio = maxWidth / img.width;
-        canvas.width = maxWidth;
-        canvas.height = Math.round(img.height * ratio);
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+
+      if (w > maxWidth) {
+        const ratio = maxWidth / w;
+        w = maxWidth;
+        h = Math.round(h * ratio);
       }
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Mobile canvas size safety
+      const MAX_DIM = 4096;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        const scale = Math.min(MAX_DIM / w, MAX_DIM / h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(dataUri);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
-    img.onerror = () => {
-      // If decoding fails, return original
-      resolve(dataUri);
-    };
+    img.onerror = () => resolve(dataUri);
     img.src = dataUri;
   });
 }
