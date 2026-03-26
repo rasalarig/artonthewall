@@ -201,7 +201,7 @@ function CadastrarContent() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1
-            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white lowercase mb-4"
+            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white mb-4"
             style={{ animation: "fadeInUp 0.7s ease-out both" }}
           >
             cadastrar

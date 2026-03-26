@@ -5,7 +5,7 @@ import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
-import type { FilterPreset } from "@/lib/imageFilter";
+
 
 /* ------------------------------------------------------------------ */
 /*  Price range helpers                                                */
@@ -30,7 +30,7 @@ const PRICE_RANGES: PriceRange[] = [
 /* ------------------------------------------------------------------ */
 
 export default function CatalogoPublicoPage() {
-  const { artists, artworks, isLoading, markupPercentage, imageFilter, updateImageFilter } = useCatalog();
+  const { artists, artworks, isLoading, markupPercentage } = useCatalog();
 
   /* Filter state */
   const [artistFilter, setArtistFilter] = useState<string>("");
@@ -191,8 +191,6 @@ export default function CatalogoPublicoPage() {
                       images={workImages}
                       alt={work.title}
                       height={placeholderH}
-                      activeFilter={imageFilter as FilterPreset}
-                      onFilterChange={(preset) => updateImageFilter(preset)}
                     />
                   )}
 

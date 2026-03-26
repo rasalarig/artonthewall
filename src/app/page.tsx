@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
 import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
-import { getCSSFilter } from "@/lib/imageFilter";
 import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
@@ -43,7 +42,7 @@ function accentColor(index: number): string {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function Home() {
-  const { artists, artworks, isLoading, imageFilter, markupPercentage } = useCatalog();
+  const { artists, artworks, isLoading, markupPercentage } = useCatalog();
 
   if (isLoading) return <Loading />;
 
@@ -91,7 +90,7 @@ export default function Home() {
           className="relative z-10 text-center select-none max-w-6xl"
           style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
         >
-          <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-white lowercase">
+          <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-white">
             catalogo de arte urbana e graffiti
           </span>
         </h1>
@@ -137,7 +136,7 @@ export default function Home() {
       <section className="bg-white py-24 md:py-32 px-6">
         <div className="max-w-6xl mx-auto">
           <h2
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black lowercase mb-4 tracking-tight"
+            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black mb-4 tracking-tight"
             style={{ animation: "fadeInUp 0.7s ease-out 0.1s both" }}
           >
             artistas em destaque
@@ -151,7 +150,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {featured.map((artist, i) => (
-              <ArtistCard key={artist.id} artist={artist} index={i} imageFilter={imageFilter} />
+              <ArtistCard key={artist.id} artist={artist} index={i} />
             ))}
           </div>
         </div>
@@ -163,7 +162,7 @@ export default function Home() {
       <section className="py-24 md:py-32 bg-black">
         <div className="max-w-6xl mx-auto px-6 mb-12">
           <h2
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white lowercase mb-4 tracking-tight"
+            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 tracking-tight"
             style={{ animation: "fadeInUp 0.7s ease-out 0.1s both" }}
           >
             obras da exposicao
@@ -188,7 +187,7 @@ export default function Home() {
           <div className="shrink-0 w-[max(0px,calc((100vw-72rem)/2))]" />
 
           {artworks.slice(0, 20).map((work, i) => (
-            <WorkCard key={work.id} work={work} index={i} imageFilter={imageFilter} markupPercentage={markupPercentage} />
+            <WorkCard key={work.id} work={work} index={i} markupPercentage={markupPercentage} />
           ))}
 
           {/* right spacer */}
@@ -202,7 +201,7 @@ export default function Home() {
       <section className="bg-accent py-24 md:py-32 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black lowercase mb-10 tracking-tight"
+            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black mb-10 tracking-tight"
             style={{ animation: "fadeInUp 0.7s ease-out 0.1s both" }}
           >
             explore o catalogo completo
@@ -235,7 +234,7 @@ export default function Home() {
 /*  Sub-components                                                     */
 /* ------------------------------------------------------------------ */
 
-function ArtistCard({ artist, index, imageFilter }: { artist: Artist; index: number; imageFilter: string }) {
+function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
   const delay = 0.3 + index * 0.1;
 
   return (
@@ -259,7 +258,6 @@ function ArtistCard({ artist, index, imageFilter }: { artist: Artist; index: num
               src={firstImage}
               alt={artist.name}
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ filter: getCSSFilter(imageFilter) }}
             />
           ) : null;
         })()}
@@ -298,12 +296,10 @@ function ArtistCard({ artist, index, imageFilter }: { artist: Artist; index: num
 function WorkCard({
   work,
   index,
-  imageFilter,
   markupPercentage,
 }: {
   work: Artwork & { artistName: string };
   index: number;
-  imageFilter: string;
   markupPercentage: number;
 }) {
   const delay = 0.15 + index * 0.05;
@@ -328,7 +324,6 @@ function WorkCard({
               src={images[0]}
               alt={work.title}
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ filter: getCSSFilter(imageFilter) }}
             />
           ) : null;
         })()}

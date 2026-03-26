@@ -87,15 +87,9 @@ export function useCatalog() {
 
   // ---- Settings ----
   const markupPercentage = settings?.markupPercentage ?? 0.3;
-  const imageFilter = settings?.imageFilter ?? "original";
 
   const updateMarkup = useCallback(async (value: number) => {
     await updateSettings({ markupPercentage: value });
-    await globalMutate(SETTINGS_KEY);
-  }, []);
-
-  const updateImageFilter = useCallback(async (value: string) => {
-    await updateSettings({ imageFilter: value });
     await globalMutate(SETTINGS_KEY);
   }, []);
 
@@ -127,7 +121,5 @@ export function useCatalog() {
     // Settings
     markupPercentage,
     updateMarkup,
-    imageFilter,
-    updateImageFilter,
   };
 }

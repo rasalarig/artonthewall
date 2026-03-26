@@ -95,20 +95,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     const markupPercentage = settingsRow?.markupPercentage ?? 30;
-    const imageFilter = (settingsRow as any)?.imageFilter ?? "original";
-
-    const cssFilterValue = (() => {
-      switch (imageFilter) {
-        case "preset1":
-          return "brightness(1.06) contrast(1.10) saturate(1.08)";
-        case "preset2":
-          return "brightness(1.12) contrast(1.22) saturate(1.20)";
-        case "preset3":
-          return "brightness(1.18) contrast(1.35) saturate(1.30)";
-        default:
-          return "none";
-      }
-    })();
+    const cssFilterValue = "none";
 
     const totalWorks = artists.reduce((sum, a) => sum + a.works.length, 0);
 
@@ -177,7 +164,7 @@ export async function GET(req: NextRequest) {
         return `
         <div class="artist-page">
           <div class="yellow-bar"></div>
-          <h2 class="artist-name">${esc(artist.name).toLowerCase()}</h2>
+          <h2 class="artist-name">${esc(artist.name)}</h2>
           <div class="tags">${tags}</div>
           ${worksContent}
           <div class="yellow-line-bottom"></div>
@@ -256,7 +243,7 @@ export async function GET(req: NextRequest) {
       font-weight: 900;
       color: #FFE600;
       margin-bottom: 8px;
-      text-transform: lowercase;
+      text-transform: none;
     }
     .toc .stats {
       font-size: 14px;

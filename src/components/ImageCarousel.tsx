@@ -1,13 +1,7 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
-import {
-  type FilterPreset,
-  PRESET_LABELS,
-  getCSSFilter,
-  enhanceImageWithPreset,
-} from "@/lib/imageFilter";
 
 /* ------------------------------------------------------------------ */
 /*  Chevron Arrow Button                                               */
@@ -59,52 +53,21 @@ export function Lightbox({
   images,
   initialIndex,
   onClose,
-  activeFilter,
-  onFilterChange,
 }: {
   images: string[];
   initialIndex: number;
   onClose: () => void;
-  activeFilter: FilterPreset;
-  onFilterChange: (preset: FilterPreset) => void;
 }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [enhancedSrc, setEnhancedSrc] = useState<string | null>(null);
   const total = images.length;
 
   const goNext = useCallback(() => {
     setCurrentIndex((i) => (i + 1) % total);
-    setEnhancedSrc(null);
   }, [total]);
 
   const goPrev = useCallback(() => {
     setCurrentIndex((i) => (i - 1 + total) % total);
-    setEnhancedSrc(null);
   }, [total]);
-
-  // Apply filter when currentIndex or activeFilter changes
-  useEffect(() => {
-    if (activeFilter === "original") {
-      setEnhancedSrc(null);
-      return;
-    }
-    let cancelled = false;
-    setIsEnhancing(true);
-    enhanceImageWithPreset(images[currentIndex], activeFilter)
-      .then((result) => {
-        if (!cancelled) {
-          setEnhancedSrc(result);
-          setIsEnhancing(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setIsEnhancing(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [currentIndex, activeFilter, images]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -119,15 +82,6 @@ export function Lightbox({
       document.body.style.overflow = "";
     };
   }, [onClose, goNext, goPrev, total]);
-
-  const handlePresetClick = useCallback(
-    (preset: FilterPreset) => {
-      onFilterChange(preset);
-    },
-    [onFilterChange],
-  );
-
-  const displaySrc = enhancedSrc ?? images[currentIndex];
 
   return (
     <div
@@ -147,29 +101,6 @@ export function Lightbox({
         </svg>
       </button>
 
-      {/* Filter preset tags */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        {(Object.entries(PRESET_LABELS) as [FilterPreset, string][]).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => handlePresetClick(key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
-              activeFilter === key
-                ? "bg-[#FFE600] text-black shadow-lg shadow-yellow-500/20"
-                : "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-        {isEnhancing && (
-          <svg className="w-4 h-4 animate-spin text-white ml-1" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-        )}
-      </div>
-
       {/* Navigation arrows */}
       {total > 1 && (
         <>
@@ -185,7 +116,7 @@ export function Lightbox({
       {/* Image area */}
       <div className="flex items-center justify-center w-[95vw] h-[90vh]" onClick={(e) => e.stopPropagation()}>
         <img
-          src={displaySrc}
+          src={images[currentIndex]}
           alt={`Imagem ${currentIndex + 1} de ${total}`}
           className="max-w-[95vw] max-h-[90vh] object-contain transition-opacity duration-300"
         />
@@ -210,24 +141,17 @@ export function ImageCarousel({
   alt,
   height,
   className,
-  activeFilter,
-  onFilterChange,
 }: {
   images: string[];
   alt: string;
   height: number;
   className?: string;
-  activeFilter?: FilterPreset;
-  onFilterChange?: (preset: FilterPreset) => void;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const total = images.length;
-  const filter = activeFilter ?? "original";
 
   if (total === 0) return null;
-
-  const cssFilter = getCSSFilter(filter);
 
   function goNext(e: React.MouseEvent) {
     e.stopPropagation();
@@ -256,7 +180,6 @@ export function ImageCarousel({
               src={img}
               alt={`${alt} ${idx + 1}`}
               className="h-full w-full flex-shrink-0 object-cover"
-              style={{ filter: cssFilter }}
               onClick={() => setLightboxOpen(true)}
             />
           ))}
@@ -288,8 +211,6 @@ export function ImageCarousel({
           images={images}
           initialIndex={currentIndex}
           onClose={() => setLightboxOpen(false)}
-          activeFilter={filter}
-          onFilterChange={onFilterChange ?? (() => {})}
         />,
         document.body
       )}

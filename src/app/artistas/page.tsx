@@ -8,7 +8,6 @@ import { getWorkImages, formatBRL, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
-import { type FilterPreset, getCSSFilter } from "@/lib/imageFilter";
 
 /* ------------------------------------------------------------------ */
 /*  Types for the inline carousel                                      */
@@ -23,7 +22,7 @@ interface CarouselSlide {
 /* ------------------------------------------------------------------ */
 /*  ArtistCardCarousel — inline carousel with work info overlay        */
 /* ------------------------------------------------------------------ */
-function ArtistCardCarousel({ slides, markupPercentage, activeFilter, onFilterChange }: { slides: CarouselSlide[]; markupPercentage: number; activeFilter: FilterPreset; onFilterChange: (preset: FilterPreset) => void }) {
+function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlide[]; markupPercentage: number }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const total = slides.length;
@@ -66,7 +65,6 @@ function ArtistCardCarousel({ slides, markupPercentage, activeFilter, onFilterCh
               src={slide.image}
               alt={slide.title}
               className="h-full w-full flex-shrink-0 object-cover cursor-pointer"
-              style={{ filter: getCSSFilter(activeFilter) }}
               onClick={openLightbox}
             />
           ))}
@@ -129,8 +127,6 @@ function ArtistCardCarousel({ slides, markupPercentage, activeFilter, onFilterCh
           images={slides.map((s) => s.image)}
           initialIndex={currentIndex}
           onClose={() => setLightboxOpen(false)}
-          activeFilter={activeFilter}
-          onFilterChange={onFilterChange}
         />,
         document.body
       )}
@@ -161,7 +157,7 @@ function buildSlides(works: Artwork[]): CarouselSlide[] {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 export default function ArtistasPage() {
-  const { artists, isLoading, markupPercentage, imageFilter, updateImageFilter } = useCatalog();
+  const { artists, isLoading, markupPercentage } = useCatalog();
   const [search, setSearch] = useState("");
 
   if (isLoading) return <Loading />;
@@ -176,7 +172,7 @@ export default function ArtistasPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1
-            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white lowercase mb-4"
+            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white mb-4"
             style={{ animation: "fadeInUp 0.7s ease-out both" }}
           >
             artistas
@@ -224,7 +220,7 @@ export default function ArtistasPage() {
                   {/* Image area */}
                   <div className="relative transition-all duration-700 group-hover:scale-105">
                     {hasImages ? (
-                      <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} activeFilter={imageFilter as FilterPreset} onFilterChange={(preset) => updateImageFilter(preset)} />
+                      <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} />
                     ) : (
                       <div className="h-40 md:h-48 w-full bg-surface flex items-center justify-center">
                         <span className="text-muted text-sm font-medium">
