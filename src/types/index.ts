@@ -15,5 +15,6 @@ export interface Artist {
   name: string;
   slug: string;
   characteristics: string[];
+  featured?: boolean;
   works: Artwork[];
 }

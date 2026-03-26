@@ -46,10 +46,11 @@ export default function Home() {
 
   if (isLoading) return <Loading />;
 
-  // Top 6 artists by number of works
-  const featured = [...artists]
-    .sort((a, b) => b.works.length - a.works.length)
-    .slice(0, 6);
+  // Featured artists: those marked with the star, or fallback to top 6 by works count
+  const featuredArtists = artists.filter((a) => (a as any).featured);
+  const featured = featuredArtists.length > 0
+    ? featuredArtists
+    : [...artists].sort((a, b) => b.works.length - a.works.length).slice(0, 6);
 
   const totalWorks = artworks.length;
 

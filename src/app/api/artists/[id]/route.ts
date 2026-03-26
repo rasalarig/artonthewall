@@ -47,6 +47,24 @@ export async function PUT(
   return NextResponse.json(artist);
 }
 
+// PATCH /api/artists/:id — toggle featured status
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await req.json();
+  if (body.featured !== undefined) {
+    const artist = await prisma.artist.update({
+      where: { id },
+      data: { featured: body.featured },
+      include: { works: true },
+    });
+    return NextResponse.json(artist);
+  }
+  return NextResponse.json({ error: "No action" }, { status: 400 });
+}
+
 // DELETE /api/artists/:id
 export async function DELETE(
   _req: NextRequest,

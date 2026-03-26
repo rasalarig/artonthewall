@@ -12,6 +12,7 @@ model Artist {
   name            String
   slug            String   @unique
   characteristics String[] @default([])
+  featured        Boolean  @default(false)
   works           Artwork[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

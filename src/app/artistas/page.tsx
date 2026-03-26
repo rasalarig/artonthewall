@@ -160,6 +160,37 @@ function buildSlides(works: Artwork[]): CarouselSlide[] {
 export default function ArtistasPage() {
   const { artists, isLoading, markupPercentage } = useCatalog();
   const [search, setSearch] = useState("");
+  const [featuredMap, setFeaturedMap] = useState<Record<string, boolean>>({});
+  const [initialized, setInitialized] = useState(false);
+
+  // Initialize featuredMap from artists data once loaded
+  if (!initialized && artists.length > 0) {
+    const map: Record<string, boolean> = {};
+    for (const a of artists) {
+      map[a.id] = (a as any).featured ?? false;
+    }
+    setFeaturedMap(map);
+    setInitialized(true);
+  }
+
+  async function toggleFeatured(e: React.MouseEvent, artistId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    const current = featuredMap[artistId] ?? false;
+    const next = !current;
+    // Optimistic update
+    setFeaturedMap((prev) => ({ ...prev, [artistId]: next }));
+    try {
+      await fetch(`/api/artists/${artistId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ featured: next }),
+      });
+    } catch {
+      // Revert on error
+      setFeaturedMap((prev) => ({ ...prev, [artistId]: current }));
+    }
+  }
 
   if (isLoading) return <Loading />;
 
@@ -229,6 +260,26 @@ export default function ArtistasPage() {
                         </span>
                       </div>
                     )}
+
+                    {/* Featured star button */}
+                    <button
+                      type="button"
+                      onClick={(e) => toggleFeatured(e, artist.id)}
+                      className="absolute top-4 left-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
+                      aria-label={featuredMap[artist.id] ? "Remover destaque" : "Marcar como destaque"}
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill={featuredMap[artist.id] ? "#FFE600" : "none"}
+                        stroke={featuredMap[artist.id] ? "#FFE600" : "#999"}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    </button>
 
                     {/* Works count badge */}
                     <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-white border border-border z-20">
