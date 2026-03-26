@@ -62,49 +62,76 @@ export default function Home() {
       <section
         className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6"
         style={{
-          background: `
-            radial-gradient(ellipse 80% 60% at 20% 30%, rgba(160,150,140,0.4) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 50% at 75% 70%, rgba(140,130,120,0.35) 0%, transparent 50%),
-            radial-gradient(ellipse 40% 40% at 50% 50%, rgba(170,160,150,0.25) 0%, transparent 45%),
-            radial-gradient(circle at 30% 80%, rgba(130,120,110,0.3) 0%, transparent 30%),
-            radial-gradient(circle at 80% 20%, rgba(150,140,130,0.25) 0%, transparent 25%),
-            radial-gradient(circle at 10% 10%, rgba(180,170,160,0.2) 0%, transparent 20%),
-            radial-gradient(circle at 90% 90%, rgba(120,112,105,0.3) 0%, transparent 20%),
-            linear-gradient(180deg, #C4BBB2 0%, #B8AFA6 30%, #ADA49B 60%, #B8AFA6 80%, #D4CCC4 100%)
-          `,
+          background: `url('/cimento.jpg') center/cover no-repeat`,
         }}
       >
-        {/* Subtle grain overlay for cement texture */}
+        {/* Dark overlay for depth */}
+        <div className="pointer-events-none absolute inset-0 bg-black/30" />
+
+        {/* Decorative rectangle 1 — purple, top-left */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.08]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            backgroundSize: "200px 200px",
-          }}
-        />
-        {/* Secondary texture layer — subtle cracks/variation */}
+          className="pointer-events-none absolute z-[1]"
+          style={{ top: "12%", left: "8%", opacity: 0.55 }}
+        >
+          <div
+            style={{
+              width: "220px",
+              height: "160px",
+              background: "linear-gradient(135deg, #5F0B6C 0%, #8B1A9E 100%)",
+              borderRadius: "12px",
+              transform: "rotate(-6deg)",
+              opacity: 0,
+              animation: "fadeInUp 0.9s ease-out 0.3s forwards",
+            }}
+          />
+        </div>
+        {/* Decorative rectangle 2 — yellow-green, top-right */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(100,90,80,0.15) 100px, transparent 101px),
-              repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(100,90,80,0.1) 80px, transparent 81px)
-            `,
-          }}
-        />
+          className="pointer-events-none absolute z-[1]"
+          style={{ top: "8%", right: "10%", opacity: 0.55 }}
+        >
+          <div
+            style={{
+              width: "200px",
+              height: "140px",
+              background: "linear-gradient(135deg, #DDD657 0%, #E8E07A 100%)",
+              borderRadius: "12px",
+              transform: "rotate(4deg)",
+              opacity: 0,
+              animation: "fadeInUp 0.9s ease-out 0.5s forwards",
+            }}
+          />
+        </div>
+        {/* Decorative rectangle 3 — pink, bottom-center */}
+        <div
+          className="pointer-events-none absolute z-[1]"
+          style={{ bottom: "15%", left: "50%", transform: "translateX(-50%)", opacity: 0.5 }}
+        >
+          <div
+            style={{
+              width: "240px",
+              height: "150px",
+              background: "linear-gradient(135deg, #C24068 0%, #E05585 100%)",
+              borderRadius: "12px",
+              transform: "rotate(3deg)",
+              opacity: 0,
+              animation: "fadeInUp 0.9s ease-out 0.7s forwards",
+            }}
+          />
+        </div>
 
         {/* Banner image */}
         <img
           src="/Banner_Catalogo.png"
           alt="Expo Coletiva Art on The Wall"
-          className="relative z-10 w-full max-w-[700px] h-auto drop-shadow-2xl"
+          className="relative z-10 w-full max-w-[900px] h-auto drop-shadow-2xl"
           style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
         />
 
         {/* Scroll indicator */}
         <div
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-xs tracking-widest"
-          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 1.5s forwards", color: "#6B6460" }}
+          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 1.5s forwards", color: "rgba(255,255,255,0.6)" }}
         >
           <span className="uppercase">Scroll</span>
           <svg
