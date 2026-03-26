@@ -55,66 +55,83 @@ export function formatBRL(value: number | null): string {
 }
 
 /**
+ * Convert a data URI to a Blob without using fetch (Safari 13+ compatible).
+ */
+function dataURItoBlob(dataUri: string): Blob {
+  const [header, base64Data] = dataUri.split(",");
+  const mime = header.match(/:(.*?);/)?.[1] || "image/jpeg";
+  const binary = atob(base64Data);
+  const array = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    array[i] = binary.charCodeAt(i);
+  }
+  return new Blob([array], { type: mime });
+}
+
+/**
  * Compress a base64 data URI image using canvas.
- * Uses createImageBitmap (handles EXIF orientation automatically) with
- * fallback to Image() for older browsers. Limits canvas size for mobile.
+ * Compatible with Safari 13+. Uses createImageBitmap when available
+ * (handles EXIF orientation) with fallback to Image element.
+ * Targets ~100-200KB output for mobile-friendly storage.
  */
 export async function compressImage(
   dataUri: string,
-  maxWidth = 1200,
-  quality = 0.7,
+  maxWidth = 800,
+  quality = 0.5,
 ): Promise<string> {
-  try {
-    // Convert data URI to blob for createImageBitmap
-    const response = await fetch(dataUri);
-    const blob = await response.blob();
-
-    // createImageBitmap automatically handles EXIF orientation
-    // and is more reliable on mobile browsers
-    let bmp: ImageBitmap;
+  // Try createImageBitmap first (Safari 15+, Chrome, Firefox)
+  // It handles EXIF orientation automatically
+  if (typeof createImageBitmap !== "undefined") {
     try {
-      bmp = await createImageBitmap(blob);
-    } catch {
-      // Fallback: try with Image element
-      return compressWithImage(dataUri, maxWidth, quality);
-    }
-
-    const canvas = document.createElement("canvas");
-    let w = bmp.width;
-    let h = bmp.height;
-
-    if (w > maxWidth) {
-      const ratio = maxWidth / w;
-      w = maxWidth;
-      h = Math.round(h * ratio);
-    }
-
-    // Mobile canvas size safety limit (some browsers cap at ~4096x4096)
-    const MAX_DIM = 4096;
-    if (w > MAX_DIM || h > MAX_DIM) {
-      const scale = Math.min(MAX_DIM / w, MAX_DIM / h);
-      w = Math.round(w * scale);
-      h = Math.round(h * scale);
-    }
-
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
+      const blob = dataURItoBlob(dataUri);
+      const bmp = await createImageBitmap(blob);
+      const result = drawToCanvas(bmp, bmp.width, bmp.height, maxWidth, quality);
       bmp.close();
-      return dataUri;
+      if (result) return result;
+    } catch {
+      // Fall through to Image fallback
     }
-    ctx.drawImage(bmp, 0, 0, w, h);
-    bmp.close();
-
-    return canvas.toDataURL("image/jpeg", quality);
-  } catch {
-    // Ultimate fallback — return original
-    return dataUri;
   }
+
+  // Fallback: Image element (works on all browsers including Safari 13+)
+  return compressWithImage(dataUri, maxWidth, quality);
 }
 
-/** Fallback compression using Image element for browsers without createImageBitmap */
+/** Draw an image source to a canvas and return JPEG data URI */
+function drawToCanvas(
+  source: ImageBitmap | HTMLImageElement,
+  srcWidth: number,
+  srcHeight: number,
+  maxWidth: number,
+  quality: number,
+): string | null {
+  let w = srcWidth;
+  let h = srcHeight;
+
+  if (w > maxWidth) {
+    const ratio = maxWidth / w;
+    w = maxWidth;
+    h = Math.round(h * ratio);
+  }
+
+  // Mobile canvas size safety limit
+  const MAX_DIM = 4096;
+  if (w > MAX_DIM || h > MAX_DIM) {
+    const scale = Math.min(MAX_DIM / w, MAX_DIM / h);
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(source, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
+/** Fallback compression using Image element for older Safari */
 function compressWithImage(
   dataUri: string,
   maxWidth: number,
@@ -123,33 +140,10 @@ function compressWithImage(
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      let w = img.naturalWidth || img.width;
-      let h = img.naturalHeight || img.height;
-
-      if (w > maxWidth) {
-        const ratio = maxWidth / w;
-        w = maxWidth;
-        h = Math.round(h * ratio);
-      }
-
-      // Mobile canvas size safety
-      const MAX_DIM = 4096;
-      if (w > MAX_DIM || h > MAX_DIM) {
-        const scale = Math.min(MAX_DIM / w, MAX_DIM / h);
-        w = Math.round(w * scale);
-        h = Math.round(h * scale);
-      }
-
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        resolve(dataUri);
-        return;
-      }
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      const result = drawToCanvas(img, w, h, maxWidth, quality);
+      resolve(result || dataUri);
     };
     img.onerror = () => resolve(dataUri);
     img.src = dataUri;
