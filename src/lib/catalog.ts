@@ -10,6 +10,25 @@ export function getWorkImages(work: Artwork): string[] {
 }
 
 /**
+ * Convert a work's images to displayable URLs.
+ * Base64 data URIs are converted to /api/works/:id/image/:index proxy URLs.
+ * Regular URLs (Cloudinary, etc.) are kept as-is.
+ */
+export function getDisplayImageUrls(work: Artwork): string[] {
+  const images = work.images && work.images.length > 0
+    ? work.images
+    : work.image
+      ? [work.image]
+      : [];
+  return images.map((img, index) => {
+    if (img.startsWith("data:")) {
+      return `/api/works/${work.id}/image/${index}`;
+    }
+    return img;
+  });
+}
+
+/**
  * Apply a markup percentage to a value.
  * @param value - base price
  * @param markup - decimal markup (e.g. 0.30 for 30%)

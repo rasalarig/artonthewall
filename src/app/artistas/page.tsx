@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { getWorkImages, formatBRL, applyMarkup } from "@/lib/catalog";
+import { getDisplayImageUrls, formatBRL, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
@@ -140,7 +140,7 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
 function buildSlides(works: Artwork[]): CarouselSlide[] {
   const slides: CarouselSlide[] = [];
   for (const work of works) {
-    const images = getWorkImages(work);
+    const images = getDisplayImageUrls(work);
     for (const image of images) {
       slides.push({
         image,

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
+import { formatBRL, getDisplayImageUrls, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import type { Artist, Artwork } from "@/types";
 
@@ -252,7 +252,8 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
         style={{ background: artistGradient(artist.name) }}
       >
         {(() => {
-          const firstImage = artist.works[0]?.images?.[0] ?? (artist.works[0]?.image || null);
+          const firstWork = artist.works[0];
+          const firstImage = firstWork ? getDisplayImageUrls(firstWork)[0] : null;
           return firstImage ? (
             <img
               src={firstImage}
@@ -318,7 +319,7 @@ function WorkCard({
         style={{ background: artworkGradient(work.id) }}
       >
         {(() => {
-          const images = getWorkImages(work);
+          const images = getDisplayImageUrls(work);
           return images.length > 0 ? (
             <img
               src={images[0]}

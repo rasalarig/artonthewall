@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages, applyMarkup } from "@/lib/catalog";
+import { formatBRL, getDisplayImageUrls, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 
@@ -173,7 +173,7 @@ export default function CatalogoPublicoPage() {
         ) : (
           <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
             {filtered.map((work, index) => {
-              const workImages = getWorkImages(work);
+              const workImages = getDisplayImageUrls(work);
               const placeholderH = 260;
 
               return (

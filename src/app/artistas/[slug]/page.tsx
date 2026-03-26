@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages, compressImage, applyMarkup } from "@/lib/catalog";
+import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMarkup } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import type { Artwork } from "@/types";
@@ -523,7 +523,7 @@ export default function ArtistDetailPage({
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {works.map((work, index) => {
-                const workImages = getWorkImages(work);
+                const workImages = getDisplayImageUrls(work);
                 const delay = 0.3 + index * 0.08;
                 const isEditing = editingWorkId === work.id;
 
