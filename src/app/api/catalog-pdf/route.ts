@@ -456,7 +456,7 @@ export async function GET(req: NextRequest) {
   <div class="cover">
     <div class="catalog-label">Catalogo Digital</div>
     <h1>ART ON THE WALL</h1>
-    <p class="subtitle">Expo Coletiva &bull; Arte Urbana</p>
+    <p class="subtitle">Galeria de Artistas Urbanos</p>
     <div class="yellow-divider"></div>
   </div>
 
@@ -475,7 +475,7 @@ export async function GET(req: NextRequest) {
   <!-- Credits page -->
   <div class="credits">
     <h2>Art on the Wall</h2>
-    <p class="credits-sub">Expo Coletiva de Arte Urbana</p>
+    <p class="credits-sub">Galeria de Artistas Urbanos</p>
     <p class="credits-note">Catalogo gerado digitalmente</p>
   </div>
 

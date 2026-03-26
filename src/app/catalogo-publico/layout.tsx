@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Art on the Wall — Catalogo Digital",
   description:
-    "Catalogo digital da exposicao coletiva Art on the Wall. Graffiti, arte urbana e expressoes contemporaneas.",
+    "Galeria de Artistas Urbanos. Expressões contemporâneas de arte urbana.",
 };
 
 export default function CatalogoPublicoLayout({
