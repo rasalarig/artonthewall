@@ -102,6 +102,8 @@ export async function GET(req: NextRequest) {
     // Resolve image URL — in production use Cloudinary URL directly
     // (the user's browser loads them); locally use optimized URLs for Puppeteer
     function resolveImage(img: string): string {
+      // Base64 data URIs work inline — return as-is
+      if (img.startsWith("data:")) return img;
       const url = img.startsWith("http") ? img : `${origin}${img}`;
       return isProduction ? url : optimizeCloudinaryUrl(url);
     }
