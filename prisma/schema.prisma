@@ -15,6 +15,7 @@ model Artist {
   featured        Boolean  @default(false)
   hidden          Boolean  @default(false)
   coverWorkId     String?
+  sortOrder       Int      @default(0)
   works           Artwork[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -32,6 +33,7 @@ model Artwork {
   images      String[] @default([])
   hidden      Boolean  @default(false)
   sold            Boolean  @default(false)
+  sortOrder       Int      @default(0)
   imagePositions  Json?    @default("{}")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

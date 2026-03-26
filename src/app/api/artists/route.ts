@@ -9,9 +9,11 @@ export async function GET(req: NextRequest) {
   const artists = await prisma.artist.findMany({
     where: showAll ? undefined : { hidden: false },
     include: {
-      works: showAll ? true : { where: { hidden: false } },
+      works: showAll
+        ? { orderBy: [{ sortOrder: "asc" }, { title: "asc" }] }
+        : { where: { hidden: false }, orderBy: [{ sortOrder: "asc" }, { title: "asc" }] },
     },
-    orderBy: { name: "asc" },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
   return NextResponse.json(artists);
 }

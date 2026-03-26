@@ -9,7 +9,7 @@ export async function GET(
   const { id } = await params;
   const artist = await prisma.artist.findUnique({
     where: { id },
-    include: { works: true },
+    include: { works: { orderBy: [{ sortOrder: "asc" }, { title: "asc" }] } },
   });
   if (!artist)
     return NextResponse.json({ error: "Not found" }, { status: 404 });

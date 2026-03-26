@@ -8,7 +8,8 @@ import { useCatalog } from "@/hooks/useCatalog";
 import { getDisplayImageUrls, formatBRL, applyMarkup, handleImageError } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
-import type { Artwork } from "@/types";
+import { DraggableList } from "@/components/DraggableList";
+import type { Artist, Artwork } from "@/types";
 
 /* ------------------------------------------------------------------ */
 /*  Types for the inline carousel                                      */
@@ -171,6 +172,8 @@ export default function ArtistasPage() {
   const [hiddenMap, setHiddenMap] = useState<Record<string, boolean>>({});
   const [showHidden, setShowHidden] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   // Initialize featuredMap and hiddenMap from artists data once loaded
   if (!initialized && artists.length > 0) {
@@ -221,6 +224,23 @@ export default function ArtistasPage() {
     }
   }
 
+  async function handleReorder(reordered: Artist[]) {
+    setSavingOrder(true);
+    const items = reordered.map((a, index) => ({ id: a.id, sortOrder: index }));
+    try {
+      await fetch("/api/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "artist", items }),
+      });
+      await globalMutate("/api/artists?all=true");
+    } catch {
+      // ignore
+    } finally {
+      setSavingOrder(false);
+    }
+  }
+
   if (isLoading) return <Loading />;
 
   const filtered = artists.filter((a) => {
@@ -261,9 +281,9 @@ export default function ArtistasPage() {
           />
         </div>
 
-        {/* Show/hide hidden toggle */}
+        {/* Show/hide hidden toggle + Reorder toggle */}
         <div
-          className="flex justify-center mb-16"
+          className="flex justify-center gap-3 mb-16 flex-wrap"
           style={{ animation: "fadeInUp 0.7s ease-out 0.35s both" }}
         >
           <button
@@ -290,127 +310,223 @@ export default function ArtistasPage() {
             </svg>
             {showHidden ? "Mostrando ocultos" : "Ocultos escondidos"}
           </button>
+          <button
+            onClick={() => setReorderMode((v) => !v)}
+            disabled={savingOrder}
+            className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-bold transition-all duration-300 ${
+              reorderMode
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-border bg-surface-light text-muted hover:border-accent hover:text-accent"
+            }`}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+              <polyline points="7 4 5 6 7 8" />
+              <polyline points="17 10 19 12 17 14" />
+              <polyline points="7 16 5 18 7 20" />
+            </svg>
+            {savingOrder ? "Salvando..." : reorderMode ? "Reordenando" : "Reordenar"}
+          </button>
         </div>
 
         {/* Artists grid */}
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((artist, i) => {
-              const delay = 0.3 + i * 0.07;
-              const slides = buildSlides(artist.works, artist.coverWorkId);
-              const hasImages = slides.length > 0;
-              const isHidden = hiddenMap[artist.id] ?? artist.hidden ?? false;
+          reorderMode ? (
+            <DraggableList
+              items={filtered}
+              keyExtractor={(a) => a.id}
+              onReorder={handleReorder}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              renderItem={(artist, _i, dragProps) => {
+                const slides = buildSlides(artist.works, artist.coverWorkId);
+                const hasImages = slides.length > 0;
+                const isHidden = hiddenMap[artist.id] ?? artist.hidden ?? false;
 
-              return (
-                <Link
-                  key={artist.id}
-                  href={`/artistas/${artist.slug}`}
-                  className={`group relative block rounded-xl overflow-hidden border border-border bg-black transition-all duration-500 hover:border-accent hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10${isHidden ? " opacity-50" : ""}`}
-                  style={{
-                    opacity: 0,
-                    animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
-                  }}
-                >
-                  {/* Image area */}
-                  <div className="relative transition-all duration-700 group-hover:scale-105">
-                    {hasImages ? (
-                      <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} />
-                    ) : (
-                      <div className="h-40 md:h-48 w-full bg-surface flex items-center justify-center">
-                        <span className="text-muted text-sm font-medium">
-                          {artist.name}
-                        </span>
+                return (
+                  <div
+                    {...dragProps}
+                    className={`group relative block rounded-xl overflow-hidden border border-border bg-black cursor-grab active:cursor-grabbing transition-all duration-300${isHidden ? " opacity-50" : ""}`}
+                  >
+                    {/* Drag handle bar */}
+                    <div className="flex items-center justify-center gap-1.5 py-2 bg-surface-light border-b border-border select-none">
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex gap-0.5">
+                          <div className="w-1 h-1 rounded-full bg-muted" />
+                          <div className="w-1 h-1 rounded-full bg-muted" />
+                        </div>
+                        <div className="flex gap-0.5">
+                          <div className="w-1 h-1 rounded-full bg-muted" />
+                          <div className="w-1 h-1 rounded-full bg-muted" />
+                        </div>
+                        <div className="flex gap-0.5">
+                          <div className="w-1 h-1 rounded-full bg-muted" />
+                          <div className="w-1 h-1 rounded-full bg-muted" />
+                        </div>
                       </div>
-                    )}
+                      <span className="text-xs text-muted font-bold ml-1">Arrastar</span>
+                    </div>
 
-                    {/* Featured star button */}
-                    <button
-                      type="button"
-                      onClick={(e) => toggleFeatured(e, artist.id)}
-                      className="absolute top-4 left-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
-                      aria-label={featuredMap[artist.id] ? "Remover destaque" : "Marcar como destaque"}
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill={featuredMap[artist.id] ? "#FFE600" : "none"}
-                        stroke={featuredMap[artist.id] ? "#FFE600" : "#999"}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg>
-                    </button>
-
-                    {/* Hide/show eye button */}
-                    <button
-                      type="button"
-                      onClick={(e) => toggleHidden(e, artist.id)}
-                      className="absolute top-14 left-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
-                      aria-label={isHidden ? "Tornar visivel" : "Ocultar artista"}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke={isHidden ? "#ef4444" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                        {isHidden ? (
-                          <>
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
-                          </>
-                        ) : (
-                          <>
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </>
-                        )}
-                      </svg>
-                    </button>
-
-                    {/* Oculto badge */}
-                    {isHidden && (
-                      <span className="absolute top-4 left-16 z-20 bg-red-600/80 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-500/50">
-                        Oculto
-                      </span>
-                    )}
-
-                    {/* Works count badge */}
-                    <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-foreground border border-border z-20">
-                      {artist.works.length}{" "}
-                      {artist.works.length === 1 ? "obra" : "obras"}
-                    </span>
-                  </div>
-
-                  <div className="p-5">
-                    {/* Artist name */}
-                    <h3 className="text-xl font-extrabold text-foreground mb-3 group-hover:text-accent transition-colors duration-300 tracking-tight">
-                      {artist.name}
-                    </h3>
-
-                    {/* Characteristics tags — clean pills */}
-                    {artist.characteristics.length > 0 ? (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {artist.characteristics.map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-xs px-2.5 py-1 rounded-full bg-surface-light text-muted font-medium"
-                          >
-                            {tag}
+                    {/* Image area */}
+                    <div className="relative pointer-events-none">
+                      {hasImages ? (
+                        <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} />
+                      ) : (
+                        <div className="h-40 md:h-48 w-full bg-surface flex items-center justify-center">
+                          <span className="text-muted text-sm font-medium">
+                            {artist.name}
                           </span>
-                        ))}
-                      </div>
-                    ) : null}
+                        </div>
+                      )}
 
-                    {/* No works message */}
-                    {artist.works.length === 0 && (
-                      <p className="text-sm text-muted mt-1">
-                        Sem obras cadastradas
-                      </p>
-                    )}
+                      {/* Works count badge */}
+                      <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-foreground border border-border z-20">
+                        {artist.works.length}{" "}
+                        {artist.works.length === 1 ? "obra" : "obras"}
+                      </span>
+                    </div>
+
+                    <div className="p-5">
+                      <h3 className="text-xl font-extrabold text-foreground mb-3 tracking-tight">
+                        {artist.name}
+                      </h3>
+                      {artist.characteristics.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {artist.characteristics.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-xs px-2.5 py-1 rounded-full bg-surface-light text-muted font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
-                </Link>
-              );
-            })}
-          </div>
+                );
+              }}
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((artist, i) => {
+                const delay = 0.3 + i * 0.07;
+                const slides = buildSlides(artist.works, artist.coverWorkId);
+                const hasImages = slides.length > 0;
+                const isHidden = hiddenMap[artist.id] ?? artist.hidden ?? false;
+
+                return (
+                  <Link
+                    key={artist.id}
+                    href={`/artistas/${artist.slug}`}
+                    className={`group relative block rounded-xl overflow-hidden border border-border bg-black transition-all duration-500 hover:border-accent hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10${isHidden ? " opacity-50" : ""}`}
+                    style={{
+                      opacity: 0,
+                      animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
+                    }}
+                  >
+                    {/* Image area */}
+                    <div className="relative transition-all duration-700 group-hover:scale-105">
+                      {hasImages ? (
+                        <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} />
+                      ) : (
+                        <div className="h-40 md:h-48 w-full bg-surface flex items-center justify-center">
+                          <span className="text-muted text-sm font-medium">
+                            {artist.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Featured star button */}
+                      <button
+                        type="button"
+                        onClick={(e) => toggleFeatured(e, artist.id)}
+                        className="absolute top-4 left-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
+                        aria-label={featuredMap[artist.id] ? "Remover destaque" : "Marcar como destaque"}
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          viewBox="0 0 24 24"
+                          fill={featuredMap[artist.id] ? "#FFE600" : "none"}
+                          stroke={featuredMap[artist.id] ? "#FFE600" : "#999"}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      </button>
+
+                      {/* Hide/show eye button */}
+                      <button
+                        type="button"
+                        onClick={(e) => toggleHidden(e, artist.id)}
+                        className="absolute top-14 left-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
+                        aria-label={isHidden ? "Tornar visivel" : "Ocultar artista"}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke={isHidden ? "#ef4444" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          {isHidden ? (
+                            <>
+                              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                              <line x1="1" y1="1" x2="23" y2="23" />
+                            </>
+                          ) : (
+                            <>
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </>
+                          )}
+                        </svg>
+                      </button>
+
+                      {/* Oculto badge */}
+                      {isHidden && (
+                        <span className="absolute top-4 left-16 z-20 bg-red-600/80 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-500/50">
+                          Oculto
+                        </span>
+                      )}
+
+                      {/* Works count badge */}
+                      <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-foreground border border-border z-20">
+                        {artist.works.length}{" "}
+                        {artist.works.length === 1 ? "obra" : "obras"}
+                      </span>
+                    </div>
+
+                    <div className="p-5">
+                      {/* Artist name */}
+                      <h3 className="text-xl font-extrabold text-foreground mb-3 group-hover:text-accent transition-colors duration-300 tracking-tight">
+                        {artist.name}
+                      </h3>
+
+                      {/* Characteristics tags -- clean pills */}
+                      {artist.characteristics.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {artist.characteristics.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-xs px-2.5 py-1 rounded-full bg-surface-light text-muted font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {/* No works message */}
+                      {artist.works.length === 0 && (
+                        <p className="text-sm text-muted mt-1">
+                          Sem obras cadastradas
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )
         ) : (
           /* Empty search state */
           <div

@@ -10,6 +10,7 @@ export interface Artwork {
   images?: string[]; // base64 data URIs for uploaded photos
   hidden?: boolean;
   sold?: boolean;
+  sortOrder?: number;
   imagePositions?: Record<string, { x: number; y: number }>;
 }
 
@@ -21,5 +22,6 @@ export interface Artist {
   featured?: boolean;
   hidden?: boolean;
   coverWorkId?: string;
+  sortOrder?: number;
   works: Artwork[];
 }

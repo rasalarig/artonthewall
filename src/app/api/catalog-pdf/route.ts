@@ -88,8 +88,8 @@ export async function GET(req: NextRequest) {
     // Fetch all data from DB
     const [artists, settingsRow] = await Promise.all([
       prisma.artist.findMany({
-        include: { works: true },
-        orderBy: { name: "asc" },
+        include: { works: { orderBy: [{ sortOrder: "asc" }, { title: "asc" }] } },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
       }),
       prisma.settings.findUnique({ where: { id: "global" } }),
     ]);
