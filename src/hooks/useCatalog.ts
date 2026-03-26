@@ -22,6 +22,7 @@ export function useCatalog() {
   const { data: artists = [], isLoading: loadingArtists } = useSWR<Artist[]>(
     ARTISTS_KEY,
     fetchArtists,
+    { revalidateOnMount: true, revalidateOnFocus: true },
   );
 
   const { data: settings, isLoading: loadingSettings } = useSWR<{
