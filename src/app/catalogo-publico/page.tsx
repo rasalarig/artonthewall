@@ -222,7 +222,7 @@ export default function CatalogoPublicoPage() {
       {/* ---- Public footer ---- */}
       <footer className="mt-auto border-t border-border bg-black py-8 text-center">
         <p className="text-sm text-muted">
-          Art on the Wall &bull; Galeria de Artistas Urbanos
+          Art on the Wall &bull; Expo Coletiva Art on The Wall
         </p>
       </footer>
     </div>

@@ -25,7 +25,7 @@ export default function Footer() {
               Art on the Wall
             </p>
             <p className="mt-2 text-sm text-muted">
-              Galeria de Artistas Urbanos
+              Expo Coletiva Art on The Wall
             </p>
           </div>
 
