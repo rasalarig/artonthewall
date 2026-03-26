@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-8 text-center sm:flex-row sm:justify-between sm:text-left">
           {/* Branding */}
           <div>
-            <p className="text-lg font-extrabold tracking-tight text-white uppercase">
+            <p className="text-lg font-extrabold tracking-tight text-foreground uppercase">
               Art on the Wall
             </p>
             <p className="mt-2 text-sm text-muted">
@@ -35,7 +35,7 @@ export default function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm text-muted transition-colors duration-300 hover:text-white uppercase font-bold tracking-wide"
+                className="text-sm text-muted transition-colors duration-300 hover:text-foreground uppercase font-bold tracking-wide"
               >
                 {link.label}
               </Link>

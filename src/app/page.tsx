@@ -91,7 +91,7 @@ export default function Home() {
           className="relative z-10 text-center select-none max-w-6xl"
           style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
         >
-          <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-white">
+          <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-foreground">
             Galeria de Artistas Urbanos
           </span>
         </h1>
@@ -134,7 +134,7 @@ export default function Home() {
       {/* ============================================================ */}
       {/*  FEATURED ARTISTS — White background section                 */}
       {/* ============================================================ */}
-      <section className="bg-white py-24 md:py-32 px-6">
+      <section className="bg-[#D4CCC4] py-24 md:py-32 px-6">
         <div className="max-w-6xl mx-auto">
           <h2
             className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black mb-4 tracking-tight"
@@ -163,7 +163,7 @@ export default function Home() {
       <section className="py-24 md:py-32 bg-black">
         <div className="max-w-6xl mx-auto px-6 mb-12">
           <h2
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 tracking-tight"
+            className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-foreground mb-4 tracking-tight"
             style={{ animation: "fadeInUp 0.7s ease-out 0.1s both" }}
           >
             obras da exposicao
@@ -241,7 +241,7 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
   return (
     <Link
       href={`/artistas/${artist.slug}`}
-      className="group relative block rounded-xl overflow-hidden bg-white transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+      className="group relative block rounded-xl overflow-hidden bg-[#D4CCC4] transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
       style={{
         opacity: 0,
         animation: `fadeInUp 0.7s ease-out ${delay}s forwards`,
@@ -264,15 +264,15 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
             />
           ) : null;
         })()}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#D4CCC4] to-transparent" />
 
         {/* Works count badge */}
-        <span className="absolute top-4 right-4 bg-white text-black text-xs font-bold px-3 py-1 rounded-full">
+        <span className="absolute top-4 right-4 bg-[#D4CCC4] text-black text-xs font-bold px-3 py-1 rounded-full">
           {artist.works.length} {artist.works.length === 1 ? "obra" : "obras"}
         </span>
       </div>
 
-      <div className="p-5 bg-white">
+      <div className="p-5 bg-[#D4CCC4]">
         <h3 className="text-xl font-extrabold text-black mb-3 group-hover:text-accent-pink transition-colors duration-300 tracking-tight">
           {artist.name}
         </h3>
@@ -309,7 +309,7 @@ function WorkCard({
 
   return (
     <div
-      className="group shrink-0 w-64 md:w-72 rounded-xl overflow-hidden bg-surface transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-white/5"
+      className="group shrink-0 w-64 md:w-72 rounded-xl overflow-hidden bg-surface transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5"
       style={{
         opacity: 0,
         animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
@@ -339,7 +339,7 @@ function WorkCard({
       </div>
 
       <div className="p-4">
-        <h4 className="font-extrabold text-base text-white truncate mb-1 tracking-tight">
+        <h4 className="font-extrabold text-base text-foreground truncate mb-1 tracking-tight">
           {work.title}
         </h4>
         <p className="text-sm text-muted truncate mb-2">{work.artistName}</p>

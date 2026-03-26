@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
     html, body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: #000;
-      color: #fff;
+      color: #B8AFA6;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -356,7 +356,7 @@ export async function GET(req: NextRequest) {
     .info-title {
       font-size: 18px;
       font-weight: 700;
-      color: #fff;
+      color: #B8AFA6;
       margin-bottom: 6px;
       line-height: 1.3;
     }

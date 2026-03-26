@@ -2,7 +2,9 @@
 
 @theme inline {
   --color-background: #000000;
-  --color-foreground: #ffffff;
+  --color-foreground: #B8AFA6;
+  --color-cement: #B8AFA6;
+  --color-cement-light: #D4CCC4;
   --color-surface: #111111;
   --color-surface-light: #1a1a1a;
   --color-border: #222222;
@@ -24,7 +26,7 @@ html {
 
 body {
   background: #000000;
-  color: #ffffff;
+  color: #B8AFA6;
   font-family: var(--font-body);
 }
 
@@ -76,13 +78,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-white {
-  background: #fff;
+  background: #D4CCC4;
   color: #000;
 }
 .btn-white:hover {
   background: #000;
-  color: #fff;
-  box-shadow: 0 10px 15px -3px rgba(255,255,255,0.2);
+  color: #B8AFA6;
+  box-shadow: 0 10px 15px -3px rgba(184,175,166,0.2);
 }
 
 .btn-yellow {
@@ -98,11 +100,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-outline {
   background: transparent;
-  color: #fff;
-  border: 1px solid #fff;
+  color: #B8AFA6;
+  border: 1px solid #B8AFA6;
 }
 .btn-outline:hover {
-  background: #fff;
+  background: #D4CCC4;
   color: #000;
 }
 

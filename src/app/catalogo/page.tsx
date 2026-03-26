@@ -117,7 +117,7 @@ export default function CatalogoPage() {
       {/* ---- Header ---- */}
       <header className="mb-12 text-center">
         <h1
-          className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white"
+          className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-foreground"
           style={{ animation: "fadeInUp 0.7s ease-out both" }}
         >
           catalogo
@@ -167,7 +167,7 @@ export default function CatalogoPage() {
           </button>
           <button
             onClick={() => window.open("/catalogo-publico", "_blank")}
-            className="inline-flex items-center gap-2 rounded-full border border-white text-white hover:bg-white hover:text-black font-bold px-6 py-2 text-sm transition"
+            className="inline-flex items-center gap-2 rounded-full border border-foreground text-foreground hover:bg-[#D4CCC4] hover:text-black font-bold px-6 py-2 text-sm transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -199,7 +199,7 @@ export default function CatalogoPage() {
           <select
             value={artistFilter}
             onChange={(e) => setArtistFilter(e.target.value)}
-            className="rounded-full border border-border bg-surface-light px-4 py-2 text-sm text-white outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+            className="rounded-full border border-border bg-surface-light px-4 py-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
           >
             <option value="">Todos os artistas</option>
             {artists.map((a) => (
@@ -213,7 +213,7 @@ export default function CatalogoPage() {
           <select
             value={techniqueFilter}
             onChange={(e) => setTechniqueFilter(e.target.value)}
-            className="rounded-full border border-border bg-surface-light px-4 py-2 text-sm text-white outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+            className="rounded-full border border-border bg-surface-light px-4 py-2 text-sm text-foreground outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
           >
             <option value="">Todas as tecnicas</option>
             {techniques.map((t) => (
@@ -232,7 +232,7 @@ export default function CatalogoPage() {
                 className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase transition ${
                   idx === priceRangeIdx
                     ? "border-accent bg-accent text-black"
-                    : "border-border bg-surface-light text-muted hover:border-white/30 hover:text-white"
+                    : "border-border bg-surface-light text-muted hover:border-[#B8AFA6]/30 hover:text-foreground"
                 }`}
               >
                 {range.label}
@@ -244,7 +244,7 @@ export default function CatalogoPage() {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="ml-auto text-xs text-accent underline underline-offset-2 transition hover:text-white font-bold"
+              className="ml-auto text-xs text-accent underline underline-offset-2 transition hover:text-foreground font-bold"
             >
               Limpar filtros
             </button>
@@ -277,7 +277,7 @@ export default function CatalogoPage() {
             return (
               <article
                 key={work.id}
-                className="group mb-6 inline-block w-full overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-white/5"
+                className="group mb-6 inline-block w-full overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5"
                 style={{
                   opacity: 0,
                   animation: `fadeInUp 0.5s ease-out ${Math.min(index * 80, 800)}ms both`,
@@ -294,7 +294,7 @@ export default function CatalogoPage() {
 
                 {/* Content */}
                 <div className="p-4">
-                  <h2 className="font-extrabold text-lg text-white tracking-tight">
+                  <h2 className="font-extrabold text-lg text-foreground tracking-tight">
                     {work.title}
                   </h2>
 

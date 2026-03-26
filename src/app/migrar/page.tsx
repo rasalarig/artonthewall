@@ -91,7 +91,7 @@ export default function MigrarPage() {
   return (
     <div className="min-h-screen px-6 py-16 md:py-24">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground mb-4">
           {"Migra\u00e7\u00e3o de Dados"}
         </h1>
         <p className="text-muted text-lg mb-8">
@@ -115,7 +115,7 @@ export default function MigrarPage() {
           </div>
         ) : (
           <div className="bg-surface rounded-xl p-8 border border-border space-y-6">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-foreground">
               Dados encontrados
             </h2>
             <div className="grid grid-cols-3 gap-4">
@@ -151,7 +151,7 @@ export default function MigrarPage() {
             {status === "migrating" && (
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-white">{progress}</p>
+                <p className="text-foreground">{progress}</p>
               </div>
             )}
 

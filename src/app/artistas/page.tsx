@@ -78,7 +78,7 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
               <button
                 type="button"
                 onClick={goPrev}
-                className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors duration-200 backdrop-blur-sm"
+                className="w-8 h-8 rounded-full bg-black/60 text-foreground flex items-center justify-center hover:bg-black/80 transition-colors duration-200 backdrop-blur-sm"
                 aria-label="Anterior"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -90,7 +90,7 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
               <button
                 type="button"
                 onClick={goNext}
-                className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors duration-200 backdrop-blur-sm"
+                className="w-8 h-8 rounded-full bg-black/60 text-foreground flex items-center justify-center hover:bg-black/80 transition-colors duration-200 backdrop-blur-sm"
                 aria-label="Proxima"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -103,10 +103,10 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
 
         {/* Work info overlay at the bottom */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-3 pb-2 pt-8 z-10">
-          <p className="text-white text-sm font-bold leading-tight truncate">
+          <p className="text-foreground text-sm font-bold leading-tight truncate">
             {displayTitle}
           </p>
-          <p className="text-white/70 text-xs leading-tight truncate">
+          <p className="text-foreground/70 text-xs leading-tight truncate">
             {current.technique}
           </p>
           <p className="text-accent text-xs font-semibold">
@@ -116,7 +116,7 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
 
         {/* Counter indicator */}
         {total > 1 && (
-          <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-xs font-medium z-20">
+          <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-foreground text-xs font-medium z-20">
             {currentIndex + 1} / {total}
           </div>
         )}
@@ -204,7 +204,7 @@ export default function ArtistasPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1
-            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white mb-4"
+            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-foreground mb-4"
             style={{ animation: "fadeInUp 0.7s ease-out both" }}
           >
             artistas
@@ -227,7 +227,7 @@ export default function ArtistasPage() {
             placeholder="Buscar artista..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-6 py-4 rounded-full bg-white text-black placeholder:text-black/40 outline-none transition-all duration-300 focus:ring-2 focus:ring-accent font-medium"
+            className="w-full px-6 py-4 rounded-full bg-[#D4CCC4] text-black placeholder:text-black/40 outline-none transition-all duration-300 focus:ring-2 focus:ring-accent font-medium"
           />
         </div>
 
@@ -282,7 +282,7 @@ export default function ArtistasPage() {
                     </button>
 
                     {/* Works count badge */}
-                    <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-white border border-border z-20">
+                    <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-foreground border border-border z-20">
                       {artist.works.length}{" "}
                       {artist.works.length === 1 ? "obra" : "obras"}
                     </span>
@@ -290,7 +290,7 @@ export default function ArtistasPage() {
 
                   <div className="p-5">
                     {/* Artist name */}
-                    <h3 className="text-xl font-extrabold text-white mb-3 group-hover:text-accent transition-colors duration-300 tracking-tight">
+                    <h3 className="text-xl font-extrabold text-foreground mb-3 group-hover:text-accent transition-colors duration-300 tracking-tight">
                       {artist.name}
                     </h3>
 

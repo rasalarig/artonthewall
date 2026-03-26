@@ -24,7 +24,7 @@ function ArrowButton({
     <button
       type="button"
       onClick={onClick}
-      className={`${sizeClasses} rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors duration-200 backdrop-blur-sm`}
+      className={`${sizeClasses} rounded-full bg-black/60 text-foreground flex items-center justify-center hover:bg-black/80 transition-colors duration-200 backdrop-blur-sm`}
       aria-label={direction === "left" ? "Anterior" : "Proxima"}
     >
       <svg
@@ -93,7 +93,7 @@ export function Lightbox({
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors duration-200"
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-[#B8AFA6]/10 text-foreground flex items-center justify-center hover:bg-[#B8AFA6]/20 transition-colors duration-200"
         aria-label="Fechar"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -126,7 +126,7 @@ export function Lightbox({
 
       {/* Counter */}
       {total > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-foreground text-sm font-medium">
           {currentIndex + 1} / {total}
         </div>
       )}
@@ -202,7 +202,7 @@ export function ImageCarousel({
 
         {/* Counter indicator */}
         {total > 1 && (
-          <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-xs font-medium">
+          <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-foreground text-xs font-medium">
             {currentIndex + 1} / {total}
           </div>
         )}

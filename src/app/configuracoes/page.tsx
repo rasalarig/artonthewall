@@ -39,7 +39,7 @@ export default function ConfiguracoesPage() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1
-            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white mb-4"
+            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-foreground mb-4"
             style={{ animation: "fadeInUp 0.7s ease-out both" }}
           >
             configuracoes
@@ -57,7 +57,7 @@ export default function ConfiguracoesPage() {
           className="rounded-2xl border border-border bg-surface p-8"
           style={{ animation: "fadeInUp 0.7s ease-out 0.3s both" }}
         >
-          <h2 className="text-2xl font-extrabold text-white tracking-tight mb-2">
+          <h2 className="text-2xl font-extrabold text-foreground tracking-tight mb-2">
             Markup do Catalogo
           </h2>
           <p className="text-muted text-sm mb-8">
@@ -78,7 +78,7 @@ export default function ConfiguracoesPage() {
             <div className="flex-1">
               <label
                 htmlFor="markup-input"
-                className="block text-sm font-bold text-white mb-2"
+                className="block text-sm font-bold text-foreground mb-2"
               >
                 Novo percentual (%)
               </label>
@@ -92,7 +92,7 @@ export default function ConfiguracoesPage() {
                   setInputValue(e.target.value);
                   setSaved(false);
                 }}
-                className="w-full rounded-xl border border-border bg-surface-light px-5 py-3 text-lg font-bold text-white outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+                className="w-full rounded-xl border border-border bg-surface-light px-5 py-3 text-lg font-bold text-foreground outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
                 placeholder="30"
               />
             </div>
@@ -109,7 +109,7 @@ export default function ConfiguracoesPage() {
           {/* Preview */}
           <div className="mt-8 rounded-xl border border-border bg-black/30 p-5">
             <p className="text-sm text-muted mb-1">Pre-visualizacao</p>
-            <p className="text-white text-lg">
+            <p className="text-foreground text-lg">
               Produto de{" "}
               <span className="font-bold text-accent">
                 {formatBRL(previewBase)}

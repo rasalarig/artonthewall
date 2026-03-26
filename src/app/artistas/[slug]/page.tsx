@@ -31,7 +31,7 @@ function artistGradient(name: string): string {
 }
 
 const inputClasses =
-  "w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder:text-muted outline-none transition-all duration-300 focus:border-accent focus:ring-1 focus:ring-accent";
+  "w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-accent focus:ring-1 focus:ring-accent";
 
 /* ------------------------------------------------------------------ */
 /*  Multi-Image Upload Component                                       */
@@ -94,7 +94,7 @@ function MultiImageUpload({
 
   return (
     <div>
-      <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+      <label className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider">
         Fotos <span className="text-muted font-normal">(opcional)</span>
       </label>
       {values.length > 0 && (
@@ -111,7 +111,7 @@ function MultiImageUpload({
                 <button
                   type="button"
                   onClick={() => handleRemove(idx)}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-foreground flex items-center justify-center text-xs hover:bg-red-500 transition"
                 >
                   X
                 </button>
@@ -129,7 +129,7 @@ function MultiImageUpload({
             multiple
             onChange={handleFiles}
             disabled={compressing}
-            className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all disabled:opacity-50"
+            className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-foreground file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all disabled:opacity-50"
           />
           {compressing && (
             <p className="mt-2 text-xs text-accent animate-pulse">
@@ -199,26 +199,26 @@ function EditWorkForm({
   return (
     <form onSubmit={handleSubmit} className="p-5 space-y-4">
       <div>
-        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Titulo</label>
+        <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Titulo</label>
         <input value={title} onChange={(e) => { setTitle(e.target.value); setErrors((p) => { const n = { ...p }; delete n.title; return n; }); }} className={inputClasses} />
         {errors.title && <p className="mt-1 text-sm text-accent-red">{errors.title}</p>}
       </div>
       <div>
-        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Tecnica</label>
+        <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Tecnica</label>
         <input value={technique} onChange={(e) => { setTechnique(e.target.value); setErrors((p) => { const n = { ...p }; delete n.technique; return n; }); }} className={inputClasses} />
         {errors.technique && <p className="mt-1 text-sm text-accent-red">{errors.technique}</p>}
       </div>
       <div>
-        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Tamanho</label>
+        <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Tamanho</label>
         <input value={size} onChange={(e) => { setSize(e.target.value); setErrors((p) => { const n = { ...p }; delete n.size; return n; }); }} className={inputClasses} />
         {errors.size && <p className="mt-1 text-sm text-accent-red">{errors.size}</p>}
       </div>
       <div>
-        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Valor em R$ <span className="text-muted font-normal">(opcional)</span></label>
+        <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Valor em R$ <span className="text-muted font-normal">(opcional)</span></label>
         <input type="number" min="0" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} className={inputClasses} />
       </div>
       <div>
-        <label className="block text-xs font-bold text-white mb-1 uppercase tracking-wider">Descricao <span className="text-muted font-normal">(opcional)</span></label>
+        <label className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Descricao <span className="text-muted font-normal">(opcional)</span></label>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClasses} />
       </div>
       <MultiImageUpload values={images} onChange={setImages} />
@@ -370,7 +370,7 @@ export default function ArtistDetailPage({
           style={{ animation: "fadeInUp 0.6s ease-out both" }}
         >
           <div className="text-6xl mb-6 opacity-30">~</div>
-          <h1 className="text-3xl font-extrabold text-white mb-4 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-foreground mb-4 tracking-tight">
             Artista nao encontrado
           </h1>
           <p className="text-muted mb-8">
@@ -438,7 +438,7 @@ export default function ArtistDetailPage({
                     {editChars.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light text-white font-medium border border-border"
+                        className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light text-foreground font-medium border border-border"
                       >
                         {tag}
                         <button
@@ -473,7 +473,7 @@ export default function ArtistDetailPage({
             /* ---- Normal display ---- */
             <>
               <div className="flex items-start gap-4 mb-4">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
                   {artist.name}
                 </h1>
               </div>
@@ -483,7 +483,7 @@ export default function ArtistDetailPage({
                 {artist.characteristics.map((tag) => (
                   <span
                     key={tag}
-                    className="text-xs px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white font-medium"
+                    className="text-xs px-3 py-1.5 rounded-full bg-[#B8AFA6]/15 backdrop-blur-sm text-foreground font-medium"
                   >
                     {tag}
                   </span>
@@ -498,7 +498,7 @@ export default function ArtistDetailPage({
                 <div className="ml-auto flex gap-2">
                   <button
                     onClick={startEditArtist}
-                    className="text-xs px-4 py-1.5 rounded-full border border-white/30 text-white font-bold hover:border-accent hover:text-accent transition-all duration-300"
+                    className="text-xs px-4 py-1.5 rounded-full border border-[#B8AFA6]/30 text-foreground font-bold hover:border-accent hover:text-accent transition-all duration-300"
                   >
                     Editar
                   </button>
@@ -543,7 +543,7 @@ export default function ArtistDetailPage({
         ) : (
           <>
             <h2
-              className="text-2xl font-extrabold text-white mb-8 tracking-tight"
+              className="text-2xl font-extrabold text-foreground mb-8 tracking-tight"
               style={{ animation: "fadeInUp 0.6s ease-out 0.25s both" }}
             >
               Obras
@@ -557,7 +557,7 @@ export default function ArtistDetailPage({
                 return (
                   <article
                     key={work.id}
-                    className="group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-white/5"
+                    className="group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5"
                     style={{
                       opacity: 0,
                       animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
@@ -584,7 +584,7 @@ export default function ArtistDetailPage({
                         {/* Content */}
                         <div className="p-5">
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-extrabold text-lg text-white group-hover:text-accent transition-colors duration-300 tracking-tight">
+                            <h3 className="font-extrabold text-lg text-foreground group-hover:text-accent transition-colors duration-300 tracking-tight">
                               {work.title}
                             </h3>
                             <div className="flex gap-2 flex-shrink-0">
@@ -661,7 +661,7 @@ export default function ArtistDetailPage({
               <span className="text-xs text-muted group-hover:text-accent transition-colors duration-300 font-bold">
                 &larr; Anterior
               </span>
-              <span className="text-sm font-extrabold text-white group-hover:text-accent transition-colors duration-300 tracking-tight">
+              <span className="text-sm font-extrabold text-foreground group-hover:text-accent transition-colors duration-300 tracking-tight">
                 {prevArtist.name}
               </span>
             </Link>
@@ -677,7 +677,7 @@ export default function ArtistDetailPage({
               <span className="text-xs text-muted group-hover:text-accent transition-colors duration-300 font-bold">
                 Proximo &rarr;
               </span>
-              <span className="text-sm font-extrabold text-white group-hover:text-accent transition-colors duration-300 tracking-tight">
+              <span className="text-sm font-extrabold text-foreground group-hover:text-accent transition-colors duration-300 tracking-tight">
                 {nextArtist.name}
               </span>
             </Link>

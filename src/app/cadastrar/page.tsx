@@ -214,7 +214,7 @@ function CadastrarContent() {
   ];
 
   const inputClasses =
-    "w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder:text-muted outline-none transition-all duration-300 focus:border-accent focus:ring-1 focus:ring-accent disabled:opacity-50";
+    "w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground placeholder:text-muted outline-none transition-all duration-300 focus:border-accent focus:ring-1 focus:ring-accent disabled:opacity-50";
 
   return (
     <div className="min-h-screen px-6 py-16 md:py-24">
@@ -222,7 +222,7 @@ function CadastrarContent() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1
-            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white mb-4"
+            className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-foreground mb-4"
             style={{ animation: "fadeInUp 0.7s ease-out both" }}
           >
             cadastrar
@@ -244,7 +244,7 @@ function CadastrarContent() {
               className={`relative flex-1 py-3 text-center font-bold uppercase tracking-wider transition-colors duration-300 ${
                 activeTab === tab.key
                   ? "text-accent"
-                  : "text-muted hover:text-white"
+                  : "text-muted hover:text-foreground"
               }`}
             >
               {tab.label}
@@ -287,7 +287,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="artist-name"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Nome do Artista
                 </label>
@@ -318,7 +318,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="artist-characteristics"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Caracteristicas
                 </label>
@@ -329,7 +329,7 @@ function CadastrarContent() {
                     {characteristics.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light text-white font-medium border border-border"
+                        className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full bg-surface-light text-foreground font-medium border border-border"
                       >
                         {tag}
                         <button
@@ -418,7 +418,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="obra-artist"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Artista
                 </label>
@@ -454,7 +454,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="obra-title"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Titulo
                 </label>
@@ -485,7 +485,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="obra-technique"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Tecnica
                 </label>
@@ -516,7 +516,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="obra-size"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Tamanho
                 </label>
@@ -547,7 +547,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="obra-value"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Valor em R${" "}
                   <span className="text-muted font-normal">(opcional)</span>
@@ -569,7 +569,7 @@ function CadastrarContent() {
               <div>
                 <label
                   htmlFor="obra-description"
-                  className="block text-sm font-bold text-white mb-2 uppercase tracking-wider"
+                  className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider"
                 >
                   Descricao{" "}
                   <span className="text-muted font-normal">(opcional)</span>
@@ -587,7 +587,7 @@ function CadastrarContent() {
 
               {/* Fotos */}
               <div>
-                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+                <label className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider">
                   Fotos{" "}
                   <span className="text-muted font-normal">(opcional)</span>
                 </label>
@@ -605,7 +605,7 @@ function CadastrarContent() {
                           <button
                             type="button"
                             onClick={() => handleRemoveObraImage(idx)}
-                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs hover:bg-red-500 transition"
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-foreground flex items-center justify-center text-xs hover:bg-red-500 transition"
                           >
                             X
                           </button>
@@ -621,7 +621,7 @@ function CadastrarContent() {
                   multiple
                   onChange={handleObraFileChange}
                   disabled={obraSuccess || imageCompressing}
-                  className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-white file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all disabled:opacity-50"
+                  className="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border file:border-border file:bg-surface-light file:text-foreground file:font-bold file:cursor-pointer hover:file:bg-accent hover:file:text-black file:transition-all disabled:opacity-50"
                 />
                 {imageCompressing && (
                   <p className="mt-2 text-xs text-accent animate-pulse">

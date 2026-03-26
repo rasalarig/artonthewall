@@ -160,7 +160,7 @@ export default function Header() {
               className={`border-b border-border py-4 text-lg font-bold tracking-wide uppercase transition-colors duration-300 ${
                 isActive(link.href)
                   ? "text-accent"
-                  : "text-muted hover:text-white"
+                  : "text-muted hover:text-foreground"
               }`}
             >
               {link.label}
@@ -171,7 +171,7 @@ export default function Header() {
             className={`border-b border-border py-4 text-lg font-bold tracking-wide uppercase transition-colors duration-300 ${
               isActive("/cadastrar")
                 ? "text-accent"
-                : "text-muted hover:text-white"
+                : "text-muted hover:text-foreground"
             }`}
           >
             Cadastrar
@@ -181,7 +181,7 @@ export default function Header() {
             className={`border-b border-border py-4 text-lg font-bold tracking-wide uppercase transition-colors duration-300 ${
               isActive("/configuracoes")
                 ? "text-accent"
-                : "text-muted hover:text-white"
+                : "text-muted hover:text-foreground"
             }`}
           >
             Configuracoes
