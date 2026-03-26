@@ -1,14 +1,14 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 
 export interface DragHandleProps {
   draggable: true;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: (e: React.DragEvent) => void;
   onDragOver: (e: React.DragEvent) => void;
+  onDragEnter: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   "data-drag-index": number;
-  style?: React.CSSProperties;
 }
 
 interface DraggableListProps<T> {
@@ -17,7 +17,6 @@ interface DraggableListProps<T> {
   onReorder: (reordered: T[]) => void;
   renderItem: (item: T, index: number, dragHandleProps: DragHandleProps) => React.ReactNode;
   className?: string;
-  direction?: "horizontal" | "vertical";
 }
 
 export function DraggableList<T>({
@@ -26,68 +25,79 @@ export function DraggableList<T>({
   onReorder,
   renderItem,
   className = "",
-  direction = "vertical",
 }: DraggableListProps<T>) {
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragVisual, setDragVisual] = useState<number | null>(null);
+  const [overVisual, setOverVisual] = useState<number | null>(null);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
-  const handleDragStart = useCallback((index: number) => (e: React.DragEvent) => {
-    setDragIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-  }, []);
+  const onReorderRef = useRef(onReorder);
+  onReorderRef.current = onReorder;
 
-  const handleDragOver = useCallback((index: number) => (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setOverIndex(index);
-  }, []);
-
-  const handleDrop = useCallback((index: number) => (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dragIndex === null || dragIndex === index) {
-      setDragIndex(null);
-      setOverIndex(null);
-      return;
-    }
-    const newItems = [...items];
-    const [moved] = newItems.splice(dragIndex, 1);
-    newItems.splice(index, 0, moved);
-    onReorder(newItems);
-    setDragIndex(null);
-    setOverIndex(null);
-  }, [dragIndex, items, onReorder]);
-
-  const handleDragEnd = useCallback(() => {
-    setDragIndex(null);
-    setOverIndex(null);
-  }, []);
-
-  const getDragHandleProps = useCallback((index: number): DragHandleProps => ({
+  const makeDragProps = useCallback((index: number): DragHandleProps => ({
     draggable: true,
-    onDragStart: handleDragStart(index),
-    onDragEnd: handleDragEnd,
-    onDragOver: handleDragOver(index),
-    onDrop: handleDrop(index),
     "data-drag-index": index,
-    style: {
-      opacity: dragIndex === index ? 0.4 : 1,
-      transition: "all 0.2s ease",
-      ...(overIndex === index && dragIndex !== null && dragIndex !== index
-        ? {
-            borderTop: direction === "vertical" ? "2px solid #FFE600" : undefined,
-            borderLeft: direction !== "vertical" ? "2px solid #FFE600" : undefined,
-          }
-        : {}),
+    onDragStart: (e: React.DragEvent) => {
+      dragIndexRef.current = index;
+      setDragVisual(index);
+      e.dataTransfer.effectAllowed = "move";
+      // Set drag image to the element itself
+      const el = e.currentTarget as HTMLElement;
+      e.dataTransfer.setDragImage(el, el.offsetWidth / 2, 20);
     },
-  }), [dragIndex, overIndex, handleDragStart, handleDragEnd, handleDragOver, handleDrop, direction]);
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    },
+    onDragEnter: (e: React.DragEvent) => {
+      e.preventDefault();
+      setOverVisual(index);
+    },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault();
+      const fromIndex = dragIndexRef.current;
+      if (fromIndex === null || fromIndex === index) {
+        dragIndexRef.current = null;
+        setDragVisual(null);
+        setOverVisual(null);
+        return;
+      }
+      const currentItems = [...itemsRef.current];
+      const [moved] = currentItems.splice(fromIndex, 1);
+      currentItems.splice(index, 0, moved);
+      onReorderRef.current(currentItems);
+      dragIndexRef.current = null;
+      setDragVisual(null);
+      setOverVisual(null);
+    },
+    onDragEnd: () => {
+      dragIndexRef.current = null;
+      setDragVisual(null);
+      setOverVisual(null);
+    },
+  }), []);
 
   return (
     <div className={className}>
-      {items.map((item, index) => (
-        <React.Fragment key={keyExtractor(item)}>
-          {renderItem(item, index, getDragHandleProps(index))}
-        </React.Fragment>
-      ))}
+      {items.map((item, index) => {
+        const isDragging = dragVisual === index;
+        const isOver = overVisual === index && dragVisual !== null && dragVisual !== index;
+        return (
+          <div
+            key={keyExtractor(item)}
+            style={{
+              opacity: isDragging ? 0.4 : 1,
+              transition: "all 0.15s ease",
+              outline: isOver ? "2px solid #FFE600" : "none",
+              outlineOffset: "-2px",
+              borderRadius: "inherit",
+            }}
+          >
+            {renderItem(item, index, makeDragProps(index))}
+          </div>
+        );
+      })}
     </div>
   );
 }
