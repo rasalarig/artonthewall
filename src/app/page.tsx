@@ -47,7 +47,7 @@ export default function Home() {
   if (isLoading) return <Loading />;
 
   // Featured artists: those marked with the star, or fallback to top 6 by works count
-  const featuredArtists = artists.filter((a) => (a as any).featured);
+  const featuredArtists = artists.filter((a) => a.featured === true);
   const featured = featuredArtists.length > 0
     ? featuredArtists
     : [...artists].sort((a, b) => b.works.length - a.works.length).slice(0, 6);
@@ -60,93 +60,21 @@ export default function Home() {
       {/*  HERO — STRAAT-style massive typography                      */}
       {/* ============================================================ */}
       <section
-        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6"
+        className="relative overflow-hidden"
         style={{
-          background: `url('/cimento.jpg') center/cover no-repeat`,
+          background: `url('/cimento1.png') center / cover no-repeat`,
         }}
       >
         {/* Dark overlay for depth */}
         <div className="pointer-events-none absolute inset-0 bg-black/30" />
 
-        {/* Decorative rectangle 1 — purple, top-left */}
-        <div
-          className="pointer-events-none absolute z-[1]"
-          style={{ top: "12%", left: "8%", opacity: 0.55 }}
-        >
-          <div
-            style={{
-              width: "220px",
-              height: "160px",
-              background: "linear-gradient(135deg, #5F0B6C 0%, #8B1A9E 100%)",
-              borderRadius: "12px",
-              transform: "rotate(-6deg)",
-              opacity: 0,
-              animation: "fadeInUp 0.9s ease-out 0.3s forwards",
-            }}
-          />
-        </div>
-        {/* Decorative rectangle 2 — yellow-green, top-right */}
-        <div
-          className="pointer-events-none absolute z-[1]"
-          style={{ top: "8%", right: "10%", opacity: 0.55 }}
-        >
-          <div
-            style={{
-              width: "200px",
-              height: "140px",
-              background: "linear-gradient(135deg, #DDD657 0%, #E8E07A 100%)",
-              borderRadius: "12px",
-              transform: "rotate(4deg)",
-              opacity: 0,
-              animation: "fadeInUp 0.9s ease-out 0.5s forwards",
-            }}
-          />
-        </div>
-        {/* Decorative rectangle 3 — pink, bottom-center */}
-        <div
-          className="pointer-events-none absolute z-[1]"
-          style={{ bottom: "15%", left: "50%", transform: "translateX(-50%)", opacity: 0.5 }}
-        >
-          <div
-            style={{
-              width: "240px",
-              height: "150px",
-              background: "linear-gradient(135deg, #C24068 0%, #E05585 100%)",
-              borderRadius: "12px",
-              transform: "rotate(3deg)",
-              opacity: 0,
-              animation: "fadeInUp 0.9s ease-out 0.7s forwards",
-            }}
-          />
-        </div>
-
-        {/* Banner image */}
+        {/* Banner image — pulled up with negative margin to align gray strip with top */}
         <img
           src="/Banner_Catalogo.png"
           alt="Expo Coletiva Art on The Wall"
-          className="relative z-10 w-full max-w-[900px] h-auto drop-shadow-2xl"
-          style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
+          className="relative z-10 w-full h-auto block"
+          style={{ marginTop: "calc(-18% + 20px)" }}
         />
-
-        {/* Scroll indicator */}
-        <div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-xs tracking-widest"
-          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 1.5s forwards", color: "rgba(255,255,255,0.6)" }}
-        >
-          <span className="uppercase">Scroll</span>
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 5v14M5 12l7 7 7-7" />
-          </svg>
-        </div>
       </section>
 
       {/* Yellow accent line separator */}

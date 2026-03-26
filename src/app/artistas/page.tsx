@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { mutate as globalMutate } from "swr";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
@@ -167,7 +168,7 @@ export default function ArtistasPage() {
   if (!initialized && artists.length > 0) {
     const map: Record<string, boolean> = {};
     for (const a of artists) {
-      map[a.id] = (a as any).featured ?? false;
+      map[a.id] = a.featured ?? false;
     }
     setFeaturedMap(map);
     setInitialized(true);
@@ -186,6 +187,8 @@ export default function ArtistasPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ featured: next }),
       });
+      // Revalidate SWR cache so Home page sees updated featured status
+      await globalMutate("/api/artists");
     } catch {
       // Revert on error
       setFeaturedMap((prev) => ({ ...prev, [artistId]: current }));
