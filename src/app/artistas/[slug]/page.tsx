@@ -9,7 +9,6 @@ import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMark
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import { ImagePositionModal } from "@/components/ImagePositionModal";
-import { DraggableList } from "@/components/DraggableList";
 import type { Artwork } from "@/types";
 
 
@@ -263,8 +262,12 @@ export default function ArtistDetailPage({
   const [cropModal, setCropModal] = useState<{ workId: string; imageIndex: number; imageUrl: string } | null>(null);
 
   /* Reorder works state */
-  const [reorderWorksMode, setReorderWorksMode] = useState(false);
   const [savingWorksOrder, setSavingWorksOrder] = useState(false);
+
+  // Inline drag-and-drop state for works
+  const dragWorkIndexRef = useRef<number | null>(null);
+  const [dragWorkVisualIndex, setDragWorkVisualIndex] = useState<number | null>(null);
+  const [dropWorkTargetIndex, setDropWorkTargetIndex] = useState<number | null>(null);
 
   /* Hide/show work state */
   const [hiddenWorkMap, setHiddenWorkMap] = useState<Record<string, boolean>>({});
@@ -648,101 +651,12 @@ export default function ArtistDetailPage({
               <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
                 Obras
               </h2>
-              <button
-                onClick={() => setReorderWorksMode((v) => !v)}
-                disabled={savingWorksOrder}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold transition-all duration-300 ${
-                  reorderWorksMode
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-border bg-surface-light text-muted hover:border-accent hover:text-accent"
-                }`}
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-                {savingWorksOrder ? "Salvando..." : reorderWorksMode ? "Reordenando" : "Reordenar"}
-              </button>
+              {savingWorksOrder && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent/10 text-accent px-4 py-1.5 text-xs font-bold animate-pulse">
+                  Salvando ordem...
+                </span>
+              )}
             </div>
-            {reorderWorksMode ? (
-            <DraggableList
-              items={works}
-              keyExtractor={(w) => w.id}
-              onReorder={handleReorderWorks}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-              renderItem={(work, _index, dragProps) => {
-                const workImages = getDisplayImageUrls(work);
-                const isWorkHidden = hiddenWorkMap[work.id] ?? work.hidden ?? false;
-                const isWorkSold = soldWorkMap[work.id] ?? work.sold ?? false;
-
-                return (
-                  <div
-                    {...dragProps}
-                    className={`group overflow-hidden rounded-xl bg-surface cursor-grab active:cursor-grabbing transition-all duration-300${isWorkHidden ? " opacity-50" : ""}`}
-                  >
-                    {/* Drag handle bar */}
-                    <div className="flex items-center justify-center gap-1.5 py-2 bg-surface-light border-b border-border select-none">
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex gap-0.5">
-                          <div className="w-1 h-1 rounded-full bg-muted" />
-                          <div className="w-1 h-1 rounded-full bg-muted" />
-                        </div>
-                        <div className="flex gap-0.5">
-                          <div className="w-1 h-1 rounded-full bg-muted" />
-                          <div className="w-1 h-1 rounded-full bg-muted" />
-                        </div>
-                        <div className="flex gap-0.5">
-                          <div className="w-1 h-1 rounded-full bg-muted" />
-                          <div className="w-1 h-1 rounded-full bg-muted" />
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted font-bold ml-1">Arrastar</span>
-                    </div>
-
-                    {/* Image area */}
-                    <div className="relative pointer-events-none">
-                      {workImages.length > 0 && (
-                        <ImageCarousel
-                          images={workImages}
-                          alt={work.title}
-                          height={260}
-                          imagePositions={work.imagePositions as Record<string, { x: number; y: number }> | undefined}
-                        />
-                      )}
-                      <div className="absolute top-3 right-3 z-10 flex gap-2">
-                        {isWorkSold && (
-                          <span className="bg-red-700/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-600/50">
-                            Vendido
-                          </span>
-                        )}
-                        {isWorkHidden && (
-                          <span className="bg-red-600/80 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-500/50">
-                            Oculta
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="p-5">
-                      <h3 className="font-extrabold text-lg text-foreground tracking-tight">
-                        {work.title}
-                      </h3>
-                      <div className="mt-3 space-y-1.5">
-                        <p className="text-sm">
-                          <span className="text-accent-pink font-bold">{work.technique}</span>
-                        </p>
-                        <p className="text-sm text-muted">{work.size}</p>
-                        <p className={`text-base font-bold mt-2 ${isWorkSold ? "text-red-400" : "text-accent"}`}>
-                          {isWorkSold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }}
-            />
-            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {works.map((work, index) => {
                 const workImages = getDisplayImageUrls(work);
@@ -753,13 +667,83 @@ export default function ArtistDetailPage({
                 const effectiveCoverWorkId = localCoverWorkId !== undefined ? localCoverWorkId : artist.coverWorkId;
                 const isCover = effectiveCoverWorkId === work.id;
 
+                const isWorkBeingDragged = dragWorkVisualIndex === index;
+                const isWorkDropTarget = dropWorkTargetIndex === index && dragWorkVisualIndex !== null && dragWorkVisualIndex !== index;
+
                 return (
-                  <article
+                  <div
                     key={work.id}
-                    className={`group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5${isWorkHidden ? " opacity-50" : ""}${isCover ? " ring-2 ring-accent" : ""}`}
+                    className="relative"
                     style={{
-                      opacity: 0,
-                      animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
+                      opacity: isWorkBeingDragged ? 0.3 : undefined,
+                      transition: "opacity 0.15s ease",
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      setDropWorkTargetIndex(index);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setDropWorkTargetIndex(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const fromIndex = dragWorkIndexRef.current;
+                      if (fromIndex !== null && fromIndex !== index) {
+                        const newItems = [...works];
+                        const [moved] = newItems.splice(fromIndex, 1);
+                        newItems.splice(index, 0, moved);
+                        handleReorderWorks(newItems);
+                      }
+                      dragWorkIndexRef.current = null;
+                      setDragWorkVisualIndex(null);
+                      setDropWorkTargetIndex(null);
+                    }}
+                    onDragEnd={() => {
+                      dragWorkIndexRef.current = null;
+                      setDragWorkVisualIndex(null);
+                      setDropWorkTargetIndex(null);
+                    }}
+                  >
+                    {/* Yellow insertion indicator */}
+                    {isWorkDropTarget && (
+                      <div className="absolute -top-1.5 left-2 right-2 h-1 bg-accent rounded-full z-50 shadow-[0_0_8px_rgba(255,230,0,0.5)]" />
+                    )}
+
+                    {/* Drag handle */}
+                    <div
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        dragWorkIndexRef.current = index;
+                        setDragWorkVisualIndex(index);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", String(index));
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border cursor-grab active:cursor-grabbing hover:bg-black/90 transition-colors"
+                      title="Arrastar para reordenar"
+                    >
+                      <svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="9" cy="5" r="1.5"/>
+                        <circle cx="15" cy="5" r="1.5"/>
+                        <circle cx="9" cy="12" r="1.5"/>
+                        <circle cx="15" cy="12" r="1.5"/>
+                        <circle cx="9" cy="19" r="1.5"/>
+                        <circle cx="15" cy="19" r="1.5"/>
+                      </svg>
+                    </div>
+
+                  <article
+                    className={`group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5 ${isWorkDropTarget ? "border border-accent" : ""}${isWorkHidden ? " opacity-50" : ""}${isCover ? " ring-2 ring-accent" : ""}`}
+                    style={{
+                      opacity: isWorkBeingDragged ? undefined : 0,
+                      animation: isWorkBeingDragged ? undefined : `fadeInUp 0.6s ease-out ${delay}s forwards`,
                     }}
                   >
                     {isEditing ? (
@@ -918,10 +902,10 @@ export default function ArtistDetailPage({
                       </>
                     )}
                   </article>
+                  </div>
                 );
               })}
             </div>
-            )}
           </>
         )}
 
