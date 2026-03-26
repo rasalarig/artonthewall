@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { mutate as globalMutate } from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -260,7 +260,13 @@ export default function ArtistDetailPage({
   /* Hide/show work state */
   const [hiddenWorkMap, setHiddenWorkMap] = useState<Record<string, boolean>>({});
   const [soldWorkMap, setSoldWorkMap] = useState<Record<string, boolean>>({});
+  const [localCoverWorkId, setLocalCoverWorkId] = useState<string | null | undefined>(undefined);
   const [hiddenWorkInit, setHiddenWorkInit] = useState(false);
+
+  // Reset local cover state when SWR data updates
+  useEffect(() => {
+    setLocalCoverWorkId(undefined);
+  }, [artist?.coverWorkId]);
 
   if (!hiddenWorkInit && artist && artist.works.length > 0) {
     const m: Record<string, boolean> = {};
@@ -308,16 +314,18 @@ export default function ArtistDetailPage({
 
   async function toggleCoverWork(workId: string) {
     if (!artist) return;
-    const isCover = artist.coverWorkId === workId;
+    const isCover = (localCoverWorkId !== undefined ? localCoverWorkId : artist.coverWorkId) === workId;
+    const newCoverWorkId = isCover ? null : workId;
+    setLocalCoverWorkId(newCoverWorkId);
     try {
       await fetch(`/api/artists/${artist.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coverWorkId: isCover ? null : workId }),
+        body: JSON.stringify({ coverWorkId: newCoverWorkId }),
       });
       await globalMutate("/api/artists?all=true");
     } catch {
-      // ignore
+      setLocalCoverWorkId(undefined); // rollback
     }
   }
 
@@ -620,7 +628,8 @@ export default function ArtistDetailPage({
                 const isEditing = editingWorkId === work.id;
                 const isWorkHidden = hiddenWorkMap[work.id] ?? work.hidden ?? false;
                 const isWorkSold = soldWorkMap[work.id] ?? work.sold ?? false;
-                const isCover = artist.coverWorkId === work.id;
+                const effectiveCoverWorkId = localCoverWorkId !== undefined ? localCoverWorkId : artist.coverWorkId;
+                const isCover = effectiveCoverWorkId === work.id;
 
                 return (
                   <article
