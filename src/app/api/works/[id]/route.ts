@@ -20,6 +20,8 @@ export async function PUT(
       data.value = value !== null && value !== "" ? parseFloat(value) : null;
     if (description !== undefined)
       data.description = description?.trim() || null;
+    if (body.hidden !== undefined) data.hidden = body.hidden;
+    if (body.sold !== undefined) data.sold = body.sold;
 
     // Handle images
     if (images !== undefined) {

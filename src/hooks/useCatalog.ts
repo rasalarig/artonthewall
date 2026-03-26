@@ -15,7 +15,7 @@ import {
   updateSettings,
 } from "@/lib/api";
 
-const ARTISTS_KEY = "/api/artists";
+const ARTISTS_KEY = "/api/artists?all=true";
 const SETTINGS_KEY = "/api/settings";
 
 export function useCatalog() {

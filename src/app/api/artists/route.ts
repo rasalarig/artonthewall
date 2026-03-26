@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/artists — list all artists with works
-export async function GET() {
+// ?all=true returns everything (admin); default filters out hidden artists/works
+export async function GET(req: NextRequest) {
+  const showAll = req.nextUrl.searchParams.get("all") === "true";
+
   const artists = await prisma.artist.findMany({
-    include: { works: true },
+    where: showAll ? undefined : { hidden: false },
+    include: {
+      works: showAll ? true : { where: { hidden: false } },
+    },
     orderBy: { name: "asc" },
   });
   return NextResponse.json(artists);

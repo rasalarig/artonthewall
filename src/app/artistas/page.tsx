@@ -18,6 +18,7 @@ interface CarouselSlide {
   title: string;
   technique: string;
   value: number | null;
+  sold: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -110,8 +111,8 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
           <p className="text-foreground/70 text-xs leading-tight truncate">
             {current.technique}
           </p>
-          <p className="text-accent text-xs font-semibold">
-            {formatBRL(applyMarkup(current.value, markupPercentage))}
+          <p className={`text-xs font-semibold ${current.sold ? "text-red-400" : "text-accent"}`}>
+            {current.sold ? "Indisponivel" : formatBRL(applyMarkup(current.value, markupPercentage))}
           </p>
         </div>
 
@@ -139,9 +140,13 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
 /* ------------------------------------------------------------------ */
 /*  Helper: build flat slides array from artist works                  */
 /* ------------------------------------------------------------------ */
-function buildSlides(works: Artwork[]): CarouselSlide[] {
+function buildSlides(works: Artwork[], coverWorkId?: string): CarouselSlide[] {
   const slides: CarouselSlide[] = [];
-  for (const work of works) {
+  // Put cover work first if specified
+  const sorted = coverWorkId
+    ? [...works].sort((a, b) => (a.id === coverWorkId ? -1 : b.id === coverWorkId ? 1 : 0))
+    : works;
+  for (const work of sorted) {
     const images = getDisplayImageUrls(work);
     for (const image of images) {
       slides.push({
@@ -149,6 +154,7 @@ function buildSlides(works: Artwork[]): CarouselSlide[] {
         title: work.title,
         technique: work.technique,
         value: work.value,
+        sold: work.sold ?? false,
       });
     }
   }
@@ -162,15 +168,20 @@ export default function ArtistasPage() {
   const { artists, isLoading, markupPercentage } = useCatalog();
   const [search, setSearch] = useState("");
   const [featuredMap, setFeaturedMap] = useState<Record<string, boolean>>({});
+  const [hiddenMap, setHiddenMap] = useState<Record<string, boolean>>({});
+  const [showHidden, setShowHidden] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
-  // Initialize featuredMap from artists data once loaded
+  // Initialize featuredMap and hiddenMap from artists data once loaded
   if (!initialized && artists.length > 0) {
-    const map: Record<string, boolean> = {};
+    const fMap: Record<string, boolean> = {};
+    const hMap: Record<string, boolean> = {};
     for (const a of artists) {
-      map[a.id] = a.featured ?? false;
+      fMap[a.id] = a.featured ?? false;
+      hMap[a.id] = a.hidden ?? false;
     }
-    setFeaturedMap(map);
+    setFeaturedMap(fMap);
+    setHiddenMap(hMap);
     setInitialized(true);
   }
 
@@ -179,7 +190,6 @@ export default function ArtistasPage() {
     e.stopPropagation();
     const current = featuredMap[artistId] ?? false;
     const next = !current;
-    // Optimistic update
     setFeaturedMap((prev) => ({ ...prev, [artistId]: next }));
     try {
       await fetch(`/api/artists/${artistId}`, {
@@ -187,19 +197,36 @@ export default function ArtistasPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ featured: next }),
       });
-      // Revalidate SWR cache so Home page sees updated featured status
-      await globalMutate("/api/artists");
+      await globalMutate("/api/artists?all=true");
     } catch {
-      // Revert on error
       setFeaturedMap((prev) => ({ ...prev, [artistId]: current }));
+    }
+  }
+
+  async function toggleHidden(e: React.MouseEvent, artistId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    const current = hiddenMap[artistId] ?? false;
+    const next = !current;
+    setHiddenMap((prev) => ({ ...prev, [artistId]: next }));
+    try {
+      await fetch(`/api/artists/${artistId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden: next }),
+      });
+      await globalMutate("/api/artists?all=true");
+    } catch {
+      setHiddenMap((prev) => ({ ...prev, [artistId]: current }));
     }
   }
 
   if (isLoading) return <Loading />;
 
-  const filtered = artists.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = artists.filter((a) => {
+    if (!showHidden && (hiddenMap[a.id] ?? a.hidden)) return false;
+    return a.name.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="min-h-screen px-6 py-16 md:py-24">
@@ -222,7 +249,7 @@ export default function ArtistasPage() {
 
         {/* Search bar */}
         <div
-          className="max-w-md mx-auto mb-16"
+          className="max-w-md mx-auto mb-8"
           style={{ animation: "fadeInUp 0.7s ease-out 0.3s both" }}
         >
           <input
@@ -230,8 +257,39 @@ export default function ArtistasPage() {
             placeholder="Buscar artista..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-6 py-4 rounded-full bg-[#D4CCC4] text-black placeholder:text-black/40 outline-none transition-all duration-300 focus:ring-2 focus:ring-accent font-medium"
+            className="w-full px-6 py-4 rounded-full bg-white text-black placeholder:text-black/40 outline-none transition-all duration-300 focus:ring-2 focus:ring-accent font-medium"
           />
+        </div>
+
+        {/* Show/hide hidden toggle */}
+        <div
+          className="flex justify-center mb-16"
+          style={{ animation: "fadeInUp 0.7s ease-out 0.35s both" }}
+        >
+          <button
+            onClick={() => setShowHidden((v) => !v)}
+            className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-bold transition-all duration-300 ${
+              showHidden
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-border bg-surface-light text-muted hover:border-accent hover:text-accent"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              {showHidden ? (
+                <>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </>
+              ) : (
+                <>
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </>
+              )}
+            </svg>
+            {showHidden ? "Mostrando ocultos" : "Ocultos escondidos"}
+          </button>
         </div>
 
         {/* Artists grid */}
@@ -239,14 +297,15 @@ export default function ArtistasPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((artist, i) => {
               const delay = 0.3 + i * 0.07;
-              const slides = buildSlides(artist.works);
+              const slides = buildSlides(artist.works, artist.coverWorkId);
               const hasImages = slides.length > 0;
+              const isHidden = hiddenMap[artist.id] ?? artist.hidden ?? false;
 
               return (
                 <Link
                   key={artist.id}
                   href={`/artistas/${artist.slug}`}
-                  className="group relative block rounded-xl overflow-hidden border border-border bg-black transition-all duration-500 hover:border-accent hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10"
+                  className={`group relative block rounded-xl overflow-hidden border border-border bg-black transition-all duration-500 hover:border-accent hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10${isHidden ? " opacity-50" : ""}`}
                   style={{
                     opacity: 0,
                     animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
@@ -283,6 +342,36 @@ export default function ArtistasPage() {
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
                     </button>
+
+                    {/* Hide/show eye button */}
+                    <button
+                      type="button"
+                      onClick={(e) => toggleHidden(e, artist.id)}
+                      className="absolute top-14 left-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
+                      aria-label={isHidden ? "Tornar visivel" : "Ocultar artista"}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke={isHidden ? "#ef4444" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        {isHidden ? (
+                          <>
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </>
+                        ) : (
+                          <>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </>
+                        )}
+                      </svg>
+                    </button>
+
+                    {/* Oculto badge */}
+                    {isHidden && (
+                      <span className="absolute top-4 left-16 z-20 bg-red-600/80 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-500/50">
+                        Oculto
+                      </span>
+                    )}
 
                     {/* Works count badge */}
                     <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-foreground border border-border z-20">

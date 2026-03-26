@@ -46,35 +46,85 @@ export default function Home() {
 
   if (isLoading) return <Loading />;
 
+  // Filter out hidden artists and hidden works
+  const visibleArtists = artists.filter((a) => !a.hidden).map((a) => ({
+    ...a,
+    works: a.works.filter((w: Artwork) => !w.hidden),
+  }));
+  const visibleArtworks = artworks.filter((w) => !w.hidden).filter((w) => {
+    const artist = artists.find((a) => a.id === w.artistId);
+    return artist && !artist.hidden;
+  });
+
   // Featured artists: those marked with the star, or fallback to top 6 by works count
-  const featuredArtists = artists.filter((a) => a.featured === true);
+  const featuredArtists = visibleArtists.filter((a) => a.featured === true);
   const featured = featuredArtists.length > 0
     ? featuredArtists
-    : [...artists].sort((a, b) => b.works.length - a.works.length).slice(0, 6);
+    : [...visibleArtists].sort((a, b) => b.works.length - a.works.length).slice(0, 6);
 
-  const totalWorks = artworks.length;
+  const totalWorks = visibleArtworks.length;
 
   return (
     <>
       {/* ============================================================ */}
       {/*  HERO — STRAAT-style massive typography                      */}
       {/* ============================================================ */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background: `url('/cimento1.png') center / cover no-repeat`,
-        }}
-      >
-        {/* Dark overlay for depth */}
-        <div className="pointer-events-none absolute inset-0 bg-black/30" />
-
-        {/* Banner image — pulled up with negative margin to align gray strip with top */}
-        <img
-          src="/Banner_Catalogo.png"
-          alt="Expo Coletiva Art on The Wall"
-          className="relative z-10 w-full h-auto block"
-          style={{ marginTop: "calc(-18% + 20px)" }}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
+        {/* Floating decorative gradient squares */}
+        <div
+          className="pointer-events-none absolute top-[15%] left-[10%] w-32 h-40 md:w-48 md:h-56 rounded-lg opacity-60"
+          style={{
+            background: "linear-gradient(135deg, #5F0B6C 0%, #8B1A9E 100%)",
+            transform: "rotate(-6deg)",
+            animation: "fadeIn 1s ease-out 0.5s both",
+          }}
         />
+        <div
+          className="pointer-events-none absolute top-[25%] right-[8%] w-28 h-36 md:w-40 md:h-48 rounded-lg opacity-50"
+          style={{
+            background: "linear-gradient(135deg, #DDD657 0%, #E8E07A 100%)",
+            transform: "rotate(4deg)",
+            animation: "fadeIn 1s ease-out 0.8s both",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute bottom-[20%] left-[55%] w-24 h-32 md:w-36 md:h-44 rounded-lg opacity-40"
+          style={{
+            background: "linear-gradient(135deg, #C24068 0%, #E05585 100%)",
+            transform: "rotate(-3deg)",
+            animation: "fadeIn 1s ease-out 1.1s both",
+          }}
+        />
+
+        {/* Massive typography */}
+        <h1
+          className="relative z-10 text-center select-none max-w-6xl"
+          style={{ animation: "fadeInUp 0.8s ease-out forwards" }}
+        >
+          <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-extrabold leading-[0.9] tracking-tight text-foreground">
+            Expo Coletiva Art on The Wall
+          </span>
+        </h1>
+
+        {/* Scroll indicator */}
+        <div
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted text-xs tracking-widest"
+          style={{ opacity: 0, animation: "fadeInUp 0.6s ease-out 1.5s forwards" }}
+        >
+          <span className="uppercase">Scroll</span>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </div>
       </section>
 
       {/* Yellow accent line separator */}
@@ -86,7 +136,7 @@ export default function Home() {
       <section className="bg-accent py-10 md:py-14">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <p className="text-2xl md:text-4xl font-extrabold text-black tracking-tight">
-            {artists.length} Artistas &bull; {totalWorks}+ Obras &bull; Expo Coletiva Art on The Wall
+            {visibleArtists.length} Artistas &bull; {totalWorks}+ Obras &bull; Expo Coletiva Art on The Wall
           </p>
         </div>
       </section>
@@ -94,7 +144,7 @@ export default function Home() {
       {/* ============================================================ */}
       {/*  FEATURED ARTISTS — White background section                 */}
       {/* ============================================================ */}
-      <section className="bg-[#D4CCC4] py-24 md:py-32 px-6">
+      <section className="bg-white py-24 md:py-32 px-6">
         <div className="max-w-6xl mx-auto">
           <h2
             className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-black mb-4 tracking-tight"
@@ -147,7 +197,7 @@ export default function Home() {
           {/* left spacer to center content on wide screens */}
           <div className="shrink-0 w-[max(0px,calc((100vw-72rem)/2))]" />
 
-          {artworks.slice(0, 20).map((work, i) => (
+          {visibleArtworks.slice(0, 20).map((work, i) => (
             <WorkCard key={work.id} work={work} index={i} markupPercentage={markupPercentage} />
           ))}
 
@@ -201,7 +251,7 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
   return (
     <Link
       href={`/artistas/${artist.slug}`}
-      className="group relative block rounded-xl overflow-hidden bg-[#D4CCC4] transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+      className="group relative block rounded-xl overflow-hidden bg-white transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
       style={{
         opacity: 0,
         animation: `fadeInUp 0.7s ease-out ${delay}s forwards`,
@@ -213,8 +263,12 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
         style={{ background: artistGradient(artist.name) }}
       >
         {(() => {
-          const firstWork = artist.works[0];
-          const firstImage = firstWork ? getDisplayImageUrls(firstWork)[0] : null;
+          // Use cover work if set, otherwise fallback to first work
+          const coverWork = artist.coverWorkId
+            ? artist.works.find((w) => w.id === artist.coverWorkId)
+            : null;
+          const targetWork = coverWork || artist.works[0];
+          const firstImage = targetWork ? getDisplayImageUrls(targetWork)[0] : null;
           return firstImage ? (
             <img
               src={firstImage}
@@ -224,15 +278,15 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
             />
           ) : null;
         })()}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#D4CCC4] to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
 
         {/* Works count badge */}
-        <span className="absolute top-4 right-4 bg-[#D4CCC4] text-black text-xs font-bold px-3 py-1 rounded-full">
+        <span className="absolute top-4 right-4 bg-white text-black text-xs font-bold px-3 py-1 rounded-full">
           {artist.works.length} {artist.works.length === 1 ? "obra" : "obras"}
         </span>
       </div>
 
-      <div className="p-5 bg-[#D4CCC4]">
+      <div className="p-5 bg-white">
         <h3 className="text-xl font-extrabold text-black mb-3 group-hover:text-accent-pink transition-colors duration-300 tracking-tight">
           {artist.name}
         </h3>
@@ -291,6 +345,14 @@ function WorkCard({
             />
           ) : null;
         })()}
+        {/* Sold badge */}
+        {work.sold && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="bg-red-700/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-600/50">
+              Vendido
+            </span>
+          </div>
+        )}
         {/* Hover overlay with details */}
         <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center">
           <span className="text-accent text-sm font-bold mb-1">{work.technique}</span>
@@ -303,7 +365,7 @@ function WorkCard({
           {work.title}
         </h4>
         <p className="text-sm text-muted truncate mb-2">{work.artistName}</p>
-        <p className="text-sm font-bold text-accent">{formatBRL(applyMarkup(work.value, markupPercentage))}</p>
+        <p className={`text-sm font-bold ${work.sold ? "text-red-400" : "text-accent"}`}>{work.sold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}</p>
       </div>
     </div>
   );

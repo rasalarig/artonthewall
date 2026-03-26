@@ -30,7 +30,11 @@ const PRICE_RANGES: PriceRange[] = [
 /* ------------------------------------------------------------------ */
 
 export default function CatalogoPage() {
-  const { artists, artworks, isLoading, markupPercentage } = useCatalog();
+  const { artists: allArtists, artworks: allArtworks, isLoading, markupPercentage } = useCatalog();
+
+  // Filter out hidden artists and works for public display
+  const artists = allArtists.filter((a) => !a.hidden);
+  const artworks = allArtworks.filter((w) => !w.hidden && artists.some((a) => a.id === w.artistId));
 
   /* Filter state */
   const [artistFilter, setArtistFilter] = useState<string>("");
@@ -284,13 +288,22 @@ export default function CatalogoPage() {
                 }}
               >
                 {/* Image carousel */}
-                {workImages.length > 0 && (
-                  <ImageCarousel
-                    images={workImages}
-                    alt={work.title}
-                    height={placeholderH}
-                  />
-                )}
+                <div className="relative">
+                  {workImages.length > 0 && (
+                    <ImageCarousel
+                      images={workImages}
+                      alt={work.title}
+                      height={placeholderH}
+                    />
+                  )}
+                  {work.sold && (
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="bg-red-700/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-600/50">
+                        Vendido
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Content */}
                 <div className="p-4">
@@ -305,10 +318,10 @@ export default function CatalogoPage() {
                     </span>
                     <span className="text-sm text-muted">{work.technique}</span>
                     <span className="text-sm text-muted">{work.size}</span>
-                    <span className="text-sm font-bold text-accent">
-                      {formatBRL(applyMarkup(work.value, markupPercentage))}
+                    <span className={`text-sm font-bold ${work.sold ? "text-red-400" : "text-accent"}`}>
+                      {work.sold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}
                     </span>
-                    {work.value !== null && work.value !== 0 && (
+                    {!work.sold && work.value !== null && work.value !== 0 && (
                       <span className="text-[10px] text-muted/50 italic">
                         (valor de catalogo)
                       </span>

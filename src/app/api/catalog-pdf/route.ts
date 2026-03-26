@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
         const buildInfo = (work: (typeof artist.works)[number]) => {
           const displayTitle =
             work.title === "Sem titulo" ? "-" : esc(work.title);
-          const price = formatBRL(applyMarkup(work.value, markupPercentage));
+          const price = work.sold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage));
           return `<div class="gallery-info">
           <p class="info-title">${displayTitle}</p>
           <p class="info-technique"><span class="info-label">Tecnica:</span> ${esc(work.technique)}</p>

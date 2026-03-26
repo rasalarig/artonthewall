@@ -8,6 +8,8 @@ export interface Artwork {
   description?: string;
   image?: string; // LEGACY: single base64 data URI — use `images` instead
   images?: string[]; // base64 data URIs for uploaded photos
+  hidden?: boolean;
+  sold?: boolean;
 }
 
 export interface Artist {
@@ -16,5 +18,7 @@ export interface Artist {
   slug: string;
   characteristics: string[];
   featured?: boolean;
+  hidden?: boolean;
+  coverWorkId?: string;
   works: Artwork[];
 }

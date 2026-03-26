@@ -48,14 +48,21 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed top-0 z-50 w-full transition-all duration-300 ease-in-out ${
+        className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
           scrolled
-            ? "bg-black/70 backdrop-blur-sm shadow-lg shadow-black/20"
-            : "bg-transparent"
+            ? "bg-accent shadow-lg shadow-black/20"
+            : "bg-accent"
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-[50px] items-center justify-end">
+          <div className="flex h-[70px] items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-xl font-extrabold tracking-tight text-black sm:text-2xl uppercase">
+                Art on the Wall
+              </span>
+            </Link>
+
             {/* Desktop navigation */}
             <nav className="hidden items-center gap-1 md:flex">
               {navLinks.map((link) => (
@@ -63,14 +70,14 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   className={`relative px-4 py-2 text-sm font-bold tracking-wide uppercase transition-colors duration-300 ${
-                    scrolled
-                      ? (isActive(link.href) ? "text-white" : "text-white/80 hover:text-white")
-                      : (isActive(link.href) ? "text-black" : "text-black/60 hover:text-black")
+                    isActive(link.href)
+                      ? "text-black"
+                      : "text-black/60 hover:text-black"
                   }`}
                 >
                   {link.label}
                   {isActive(link.href) && (
-                    <span className={`absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full ${scrolled ? "bg-accent" : "bg-black"}`} />
+                    <span className="absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-black" />
                   )}
                 </Link>
               ))}
@@ -78,7 +85,7 @@ export default function Header() {
               {/* Cadastrar button */}
               <Link
                 href="/cadastrar"
-                className="ml-4 inline-flex items-center justify-center rounded-full bg-accent px-5 py-2 text-sm font-bold uppercase tracking-wide text-black transition-all duration-300 hover:bg-accent/80"
+                className="ml-4 inline-flex items-center justify-center rounded-full bg-black px-5 py-2 text-sm font-bold uppercase tracking-wide text-accent transition-all duration-300 hover:bg-black/80"
               >
                 Cadastrar
               </Link>
@@ -87,9 +94,9 @@ export default function Header() {
               <Link
                 href="/configuracoes"
                 className={`ml-2 inline-flex items-center justify-center rounded-full p-2 text-lg transition-colors duration-300 ${
-                  scrolled
-                    ? (isActive("/configuracoes") ? "text-white" : "text-white/60 hover:text-white")
-                    : (isActive("/configuracoes") ? "text-black" : "text-black/60 hover:text-black")
+                  isActive("/configuracoes")
+                    ? "text-black"
+                    : "text-black/60 hover:text-black"
                 }`}
                 aria-label="Configuracoes"
                 title="Configuracoes"
@@ -111,17 +118,17 @@ export default function Header() {
             >
               <div className="flex w-6 flex-col gap-1.5">
                 <span
-                  className={`block h-0.5 w-full rounded-full transition-all duration-300 ${scrolled ? "bg-white" : "bg-black"} ${
+                  className={`block h-0.5 w-full rounded-full bg-black transition-all duration-300 ${
                     menuOpen ? "translate-y-2 rotate-45" : ""
                   }`}
                 />
                 <span
-                  className={`block h-0.5 w-full rounded-full transition-all duration-300 ${scrolled ? "bg-white" : "bg-black"} ${
+                  className={`block h-0.5 w-full rounded-full bg-black transition-all duration-300 ${
                     menuOpen ? "scale-x-0 opacity-0" : ""
                   }`}
                 />
                 <span
-                  className={`block h-0.5 w-full rounded-full transition-all duration-300 ${scrolled ? "bg-white" : "bg-black"} ${
+                  className={`block h-0.5 w-full rounded-full bg-black transition-all duration-300 ${
                     menuOpen ? "-translate-y-2 -rotate-45" : ""
                   }`}
                 />

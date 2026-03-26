@@ -5,7 +5,7 @@ const BASE = "/api";
 // ---- Artists ----
 
 export async function fetchArtists(): Promise<Artist[]> {
-  const res = await fetch(`${BASE}/artists`);
+  const res = await fetch(`${BASE}/artists?all=true`);
   if (!res.ok) throw new Error("Failed to fetch artists");
   return res.json();
 }

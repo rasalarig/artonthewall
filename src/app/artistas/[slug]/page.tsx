@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { mutate as globalMutate } from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
@@ -255,6 +256,70 @@ export default function ArtistDetailPage({
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [savingWork, setSavingWork] = useState(false);
   const [savingArtist, setSavingArtist] = useState(false);
+
+  /* Hide/show work state */
+  const [hiddenWorkMap, setHiddenWorkMap] = useState<Record<string, boolean>>({});
+  const [soldWorkMap, setSoldWorkMap] = useState<Record<string, boolean>>({});
+  const [hiddenWorkInit, setHiddenWorkInit] = useState(false);
+
+  if (!hiddenWorkInit && artist && artist.works.length > 0) {
+    const m: Record<string, boolean> = {};
+    const s: Record<string, boolean> = {};
+    for (const w of artist.works) {
+      m[w.id] = w.hidden ?? false;
+      s[w.id] = w.sold ?? false;
+    }
+    setHiddenWorkMap(m);
+    setSoldWorkMap(s);
+    setHiddenWorkInit(true);
+  }
+
+  async function toggleWorkHidden(workId: string) {
+    const current = hiddenWorkMap[workId] ?? false;
+    const next = !current;
+    setHiddenWorkMap((prev) => ({ ...prev, [workId]: next }));
+    try {
+      await fetch(`/api/works/${workId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden: next }),
+      });
+      await globalMutate("/api/artists?all=true");
+    } catch {
+      setHiddenWorkMap((prev) => ({ ...prev, [workId]: current }));
+    }
+  }
+
+  async function toggleWorkSold(workId: string) {
+    const current = soldWorkMap[workId] ?? false;
+    const next = !current;
+    setSoldWorkMap((prev) => ({ ...prev, [workId]: next }));
+    try {
+      await fetch(`/api/works/${workId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sold: next }),
+      });
+      await globalMutate("/api/artists?all=true");
+    } catch {
+      setSoldWorkMap((prev) => ({ ...prev, [workId]: current }));
+    }
+  }
+
+  async function toggleCoverWork(workId: string) {
+    if (!artist) return;
+    const isCover = artist.coverWorkId === workId;
+    try {
+      await fetch(`/api/artists/${artist.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverWorkId: isCover ? null : workId }),
+      });
+      await globalMutate("/api/artists?all=true");
+    } catch {
+      // ignore
+    }
+  }
 
   /* Compute previous / next artists for navigation */
   const currentIndex = artists.findIndex((a) => a.slug === slug);
@@ -553,11 +618,14 @@ export default function ArtistDetailPage({
                 const workImages = getDisplayImageUrls(work);
                 const delay = 0.3 + index * 0.08;
                 const isEditing = editingWorkId === work.id;
+                const isWorkHidden = hiddenWorkMap[work.id] ?? work.hidden ?? false;
+                const isWorkSold = soldWorkMap[work.id] ?? work.sold ?? false;
+                const isCover = artist.coverWorkId === work.id;
 
                 return (
                   <article
                     key={work.id}
-                    className="group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5"
+                    className={`group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5${isWorkHidden ? " opacity-50" : ""}${isCover ? " ring-2 ring-accent" : ""}`}
                     style={{
                       opacity: 0,
                       animation: `fadeInUp 0.6s ease-out ${delay}s forwards`,
@@ -573,13 +641,87 @@ export default function ArtistDetailPage({
                     ) : (
                       <>
                         {/* Image carousel */}
-                        {workImages.length > 0 && (
-                          <ImageCarousel
-                            images={workImages}
-                            alt={work.title}
-                            height={260}
-                          />
-                        )}
+                        <div className="relative">
+                          {workImages.length > 0 && (
+                            <ImageCarousel
+                              images={workImages}
+                              alt={work.title}
+                              height={260}
+                            />
+                          )}
+
+                          {/* Action buttons overlay */}
+                          <div className="absolute top-3 left-3 z-10 flex gap-2">
+                            {/* Eye toggle */}
+                            <button
+                              type="button"
+                              onClick={() => toggleWorkHidden(work.id)}
+                              className="w-8 h-8 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border hover:bg-black/90 transition-colors duration-200"
+                              aria-label={isWorkHidden ? "Tornar visivel" : "Ocultar obra"}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke={isWorkHidden ? "#ef4444" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                {isWorkHidden ? (
+                                  <>
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                  </>
+                                )}
+                              </svg>
+                            </button>
+
+                            {/* Cover toggle */}
+                            <button
+                              type="button"
+                              onClick={() => toggleCoverWork(work.id)}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm border transition-colors duration-200 ${isCover ? "bg-accent/80 border-accent hover:bg-accent" : "bg-black/70 border-border hover:bg-black/90"}`}
+                              aria-label={isCover ? "Remover capa" : "Definir como capa"}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke={isCover ? "#000" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                              </svg>
+                            </button>
+
+                            {/* Sold toggle */}
+                            <button
+                              type="button"
+                              onClick={() => toggleWorkSold(work.id)}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm border transition-colors duration-200 ${isWorkSold ? "bg-red-600/80 border-red-500 hover:bg-red-600" : "bg-black/70 border-border hover:bg-black/90"}`}
+                              aria-label={isWorkSold ? "Marcar como disponivel" : "Marcar como vendido"}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke={isWorkSold ? "#fff" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Badges */}
+                          <div className="absolute top-3 right-3 z-10 flex gap-2">
+                            {isWorkSold && (
+                              <span className="bg-red-700/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-600/50">
+                                Vendido
+                              </span>
+                            )}
+                            {isWorkHidden && (
+                              <span className="bg-red-600/80 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-500/50">
+                                Oculta
+                              </span>
+                            )}
+                            {isCover && (
+                              <span className="bg-accent/80 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-black border border-accent">
+                                Capa
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
                         {/* Content */}
                         <div className="p-5">
@@ -615,8 +757,8 @@ export default function ArtistDetailPage({
                                 {work.description}
                               </p>
                             )}
-                            <p className="text-base font-bold text-accent mt-2">
-                              {formatBRL(applyMarkup(work.value, markupPercentage))}
+                            <p className={`text-base font-bold mt-2 ${isWorkSold ? "text-red-400" : "text-accent"}`}>
+                              {isWorkSold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}
                             </p>
                           </div>
                         </div>
