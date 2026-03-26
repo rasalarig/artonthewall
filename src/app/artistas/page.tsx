@@ -5,7 +5,7 @@ import { mutate as globalMutate } from "swr";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { getDisplayImageUrls, formatBRL, applyMarkup, handleImageError } from "@/lib/catalog";
+import { getDisplayImageUrls, formatBRL, applyMarkup, handleImageError, isPromoActive } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artist, Artwork } from "@/types";
@@ -363,43 +363,11 @@ export default function ArtistasPage() {
                       setDragVisualIndex(null);
                       setDropTargetIndex(null);
                     }}
-                    onDragEnd={() => {
-                      dragIndexRef.current = null;
-                      setDragVisualIndex(null);
-                      setDropTargetIndex(null);
-                    }}
                   >
                     {/* Yellow insertion indicator */}
                     {isDropTarget && (
                       <div className="absolute -top-1.5 left-2 right-2 h-1 bg-accent rounded-full z-50 shadow-[0_0_8px_rgba(255,230,0,0.5)]" />
                     )}
-
-                    {/* Drag handle - outside the Link */}
-                    <div
-                      draggable
-                      onDragStart={(e) => {
-                        e.stopPropagation();
-                        dragIndexRef.current = i;
-                        setDragVisualIndex(i);
-                        e.dataTransfer.effectAllowed = "move";
-                        e.dataTransfer.setData("text/plain", String(i));
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      className="absolute top-4 right-14 z-30 w-8 h-8 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border cursor-grab active:cursor-grabbing hover:bg-black/90 transition-colors"
-                      title="Arrastar para reordenar"
-                    >
-                      <svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="9" cy="5" r="1.5"/>
-                        <circle cx="15" cy="5" r="1.5"/>
-                        <circle cx="9" cy="12" r="1.5"/>
-                        <circle cx="15" cy="12" r="1.5"/>
-                        <circle cx="9" cy="19" r="1.5"/>
-                        <circle cx="15" cy="19" r="1.5"/>
-                      </svg>
-                    </div>
 
                     <Link
                       href={`/artistas/${artist.slug}`}
@@ -409,8 +377,23 @@ export default function ArtistasPage() {
                         animation: isBeingDragged ? undefined : `fadeInUp 0.6s ease-out ${delay}s forwards`,
                       }}
                     >
-                      {/* Image area */}
-                      <div className="relative transition-all duration-700 group-hover:scale-105">
+                      {/* Image area - draggable for reordering */}
+                      <div
+                        className="relative transition-all duration-700 group-hover:scale-105 cursor-grab active:cursor-grabbing"
+                        draggable
+                        onDragStart={(e) => {
+                          e.stopPropagation();
+                          dragIndexRef.current = i;
+                          setDragVisualIndex(i);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", String(i));
+                        }}
+                        onDragEnd={() => {
+                          dragIndexRef.current = null;
+                          setDragVisualIndex(null);
+                          setDropTargetIndex(null);
+                        }}
+                      >
                         {hasImages ? (
                           <ArtistCardCarousel slides={slides} markupPercentage={markupPercentage} />
                         ) : (

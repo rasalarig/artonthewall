@@ -23,6 +23,9 @@ export async function PUT(
     if (body.hidden !== undefined) data.hidden = body.hidden;
     if (body.sold !== undefined) data.sold = body.sold;
     if (body.imagePositions !== undefined) data.imagePositions = body.imagePositions;
+    if (body.coverImageIndex !== undefined) data.coverImageIndex = body.coverImageIndex;
+    if (body.promoPrice !== undefined) data.promoPrice = body.promoPrice !== null && body.promoPrice !== "" ? parseFloat(body.promoPrice) : null;
+    if (body.promoUntil !== undefined) data.promoUntil = body.promoUntil ? new Date(body.promoUntil) : null;
 
     // Handle images
     if (images !== undefined) {

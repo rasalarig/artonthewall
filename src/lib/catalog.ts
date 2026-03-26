@@ -71,6 +71,24 @@ export function getDisplayImageUrls(work: Artwork): string[] {
 }
 
 /**
+ * Get the cover image URL for an artwork, respecting coverImageIndex.
+ */
+export function getCoverImageUrl(work: Artwork): string | null {
+  const images = getDisplayImageUrls(work);
+  if (images.length === 0) return null;
+  const idx = work.coverImageIndex ?? 0;
+  return images[Math.min(idx, images.length - 1)] ?? images[0];
+}
+
+/**
+ * Check if a promotional price is currently active.
+ */
+export function isPromoActive(work: Artwork): boolean {
+  if (!work.promoPrice || !work.promoUntil) return false;
+  return new Date(work.promoUntil) >= new Date();
+}
+
+/**
  * Apply a markup percentage to a value.
  * @param value - base price
  * @param markup - decimal markup (e.g. 0.30 for 30%)

@@ -12,6 +12,9 @@ export interface Artwork {
   sold?: boolean;
   sortOrder?: number;
   imagePositions?: Record<string, { x: number; y: number }>;
+  coverImageIndex?: number;
+  promoPrice?: number | null;
+  promoUntil?: string | null;
 }
 
 export interface Artist {

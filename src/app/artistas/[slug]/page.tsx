@@ -5,7 +5,7 @@ import { mutate as globalMutate } from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMarkup, handleImageError, convertHeicIfNeeded } from "@/lib/catalog";
+import { formatBRL, getWorkImages, getDisplayImageUrls, compressImage, applyMarkup, handleImageError, convertHeicIfNeeded, isPromoActive } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import { ImagePositionModal } from "@/components/ImagePositionModal";
@@ -275,6 +275,12 @@ export default function ArtistDetailPage({
   const [localCoverWorkId, setLocalCoverWorkId] = useState<string | null | undefined>(undefined);
   const [hiddenWorkInit, setHiddenWorkInit] = useState(false);
 
+  /* Promo editing state */
+  const [promoWorkId, setPromoWorkId] = useState<string | null>(null);
+  const [promoPrice, setPromoPrice] = useState("");
+  const [promoUntil, setPromoUntil] = useState("");
+  const [savingPromo, setSavingPromo] = useState(false);
+
   // Reset local cover state when SWR data updates
   useEffect(() => {
     setLocalCoverWorkId(undefined);
@@ -338,6 +344,46 @@ export default function ArtistDetailPage({
       await globalMutate("/api/artists?all=true");
     } catch {
       setLocalCoverWorkId(undefined); // rollback
+    }
+  }
+
+  function openPromoEditor(work: Artwork) {
+    setPromoWorkId(work.id);
+    setPromoPrice(work.promoPrice != null ? String(work.promoPrice) : "");
+    setPromoUntil(work.promoUntil ? work.promoUntil.slice(0, 10) : "");
+  }
+
+  async function savePromo() {
+    if (!promoWorkId) return;
+    setSavingPromo(true);
+    try {
+      await fetch(`/api/works/${promoWorkId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          promoPrice: promoPrice.trim() ? promoPrice : null,
+          promoUntil: promoUntil.trim() ? promoUntil : null,
+        }),
+      });
+      await globalMutate("/api/artists?all=true");
+      setPromoWorkId(null);
+    } catch {
+      alert("Erro ao salvar promocao");
+    } finally {
+      setSavingPromo(false);
+    }
+  }
+
+  async function setCoverImageIndex(workId: string, index: number) {
+    try {
+      await fetch(`/api/works/${workId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverImageIndex: index }),
+      });
+      await globalMutate("/api/artists?all=true");
+    } catch {
+      // ignore
     }
   }
 
@@ -712,33 +758,6 @@ export default function ArtistDetailPage({
                       <div className="absolute -top-1.5 left-2 right-2 h-1 bg-accent rounded-full z-50 shadow-[0_0_8px_rgba(255,230,0,0.5)]" />
                     )}
 
-                    {/* Drag handle */}
-                    <div
-                      draggable
-                      onDragStart={(e) => {
-                        e.stopPropagation();
-                        dragWorkIndexRef.current = index;
-                        setDragWorkVisualIndex(index);
-                        e.dataTransfer.effectAllowed = "move";
-                        e.dataTransfer.setData("text/plain", String(index));
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm border border-border cursor-grab active:cursor-grabbing hover:bg-black/90 transition-colors"
-                      title="Arrastar para reordenar"
-                    >
-                      <svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="9" cy="5" r="1.5"/>
-                        <circle cx="15" cy="5" r="1.5"/>
-                        <circle cx="9" cy="12" r="1.5"/>
-                        <circle cx="15" cy="12" r="1.5"/>
-                        <circle cx="9" cy="19" r="1.5"/>
-                        <circle cx="15" cy="19" r="1.5"/>
-                      </svg>
-                    </div>
-
                   <article
                     className={`group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5 ${isWorkDropTarget ? "border border-accent" : ""}${isWorkHidden ? " opacity-50" : ""}${isCover ? " ring-2 ring-accent" : ""}`}
                     style={{
@@ -755,8 +774,22 @@ export default function ArtistDetailPage({
                       />
                     ) : (
                       <>
-                        {/* Image carousel */}
-                        <div className="relative">
+                        {/* Image carousel - draggable for reordering */}
+                        <div
+                          className="relative cursor-grab active:cursor-grabbing"
+                          draggable
+                          onDragStart={(e) => {
+                            dragWorkIndexRef.current = index;
+                            setDragWorkVisualIndex(index);
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/plain", String(index));
+                          }}
+                          onDragEnd={() => {
+                            dragWorkIndexRef.current = null;
+                            setDragWorkVisualIndex(null);
+                            setDropWorkTargetIndex(null);
+                          }}
+                        >
                           {workImages.length > 0 && (
                             <ImageCarousel
                               images={workImages}
@@ -838,6 +871,20 @@ export default function ArtistDetailPage({
                                 </svg>
                               </button>
                             )}
+
+                            {/* Promo toggle */}
+                            <button
+                              type="button"
+                              onClick={() => openPromoEditor(work)}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm border transition-colors duration-200 ${isPromoActive(work) ? "bg-green-600/80 border-green-500 hover:bg-green-600" : "bg-black/70 border-border hover:bg-black/90"}`}
+                              aria-label="Promocao"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke={isPromoActive(work) ? "#fff" : "#999"} viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="5" x2="5" y2="19" />
+                                <circle cx="6.5" cy="6.5" r="2.5" />
+                                <circle cx="17.5" cy="17.5" r="2.5" />
+                              </svg>
+                            </button>
                           </div>
 
                           {/* Badges */}
@@ -857,8 +904,75 @@ export default function ArtistDetailPage({
                                 Capa
                               </span>
                             )}
+                            {isPromoActive(work) && (
+                              <span className="bg-green-600/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-green-500/50">
+                                PROMO
+                              </span>
+                            )}
                           </div>
                         </div>
+
+                        {/* Promo inline editor */}
+                        {promoWorkId === work.id && (
+                          <div className="px-5 py-3 bg-surface-light border-t border-border">
+                            <p className="text-xs font-bold text-foreground mb-2 uppercase tracking-wider">Promocao</p>
+                            <div className="flex flex-wrap gap-3 items-end">
+                              <div>
+                                <label className="block text-xs text-muted mb-1">Preco promocional (R$)</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={promoPrice}
+                                  onChange={(e) => setPromoPrice(e.target.value)}
+                                  className="w-32 px-3 py-1.5 rounded-lg bg-surface border border-border text-foreground text-sm outline-none focus:border-accent"
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-muted mb-1">Valido ate</label>
+                                <input
+                                  type="date"
+                                  value={promoUntil}
+                                  onChange={(e) => setPromoUntil(e.target.value)}
+                                  className="w-40 px-3 py-1.5 rounded-lg bg-surface border border-border text-foreground text-sm outline-none focus:border-accent"
+                                />
+                              </div>
+                              <button
+                                onClick={savePromo}
+                                disabled={savingPromo}
+                                className="px-4 py-1.5 rounded-full bg-accent text-black text-xs font-bold hover:bg-accent/80 transition disabled:opacity-50"
+                              >
+                                {savingPromo ? "Salvando..." : "Salvar"}
+                              </button>
+                              <button
+                                onClick={() => setPromoWorkId(null)}
+                                disabled={savingPromo}
+                                className="px-4 py-1.5 rounded-full border border-border text-muted text-xs font-bold hover:text-foreground transition"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Cover image thumbnails */}
+                        {workImages.length > 1 && (
+                          <div className="px-5 py-2 bg-surface-light/50 border-t border-border flex gap-2 items-center overflow-x-auto">
+                            <span className="text-xs text-muted font-bold shrink-0">Capa:</span>
+                            {workImages.map((img, imgIdx) => (
+                              <button
+                                key={imgIdx}
+                                type="button"
+                                onClick={() => setCoverImageIndex(work.id, imgIdx)}
+                                className={`shrink-0 w-10 h-10 rounded-md overflow-hidden border-2 transition-all ${(work.coverImageIndex ?? 0) === imgIdx ? "border-accent ring-1 ring-accent" : "border-border hover:border-muted"}`}
+                                title={`Definir foto ${imgIdx + 1} como capa`}
+                              >
+                                <img src={img} alt={`Foto ${imgIdx + 1}`} className="w-full h-full object-cover" onError={handleImageError} />
+                              </button>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Content */}
                         <div className="p-5">
@@ -894,9 +1008,17 @@ export default function ArtistDetailPage({
                                 {work.description}
                               </p>
                             )}
-                            <p className={`text-base font-bold mt-2 ${isWorkSold ? "text-red-400" : "text-accent"}`}>
-                              {isWorkSold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}
-                            </p>
+                            {isWorkSold ? (
+                              <p className="text-base font-bold mt-2 text-red-400">Indisponivel</p>
+                            ) : isPromoActive(work) ? (
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <span className="text-muted line-through text-sm">{formatBRL(applyMarkup(work.value, markupPercentage))}</span>
+                                <span className="text-green-400 font-bold text-base">{formatBRL(applyMarkup(work.promoPrice!, markupPercentage))}</span>
+                                <span className="text-xs text-muted">ate {new Date(work.promoUntil!).toLocaleDateString('pt-BR')}</span>
+                              </div>
+                            ) : (
+                              <p className="text-base font-bold mt-2 text-accent">{formatBRL(applyMarkup(work.value, markupPercentage))}</p>
+                            )}
                           </div>
                         </div>
                       </>

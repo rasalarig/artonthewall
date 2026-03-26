@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getDisplayImageUrls, applyMarkup } from "@/lib/catalog";
+import { formatBRL, getDisplayImageUrls, applyMarkup, isPromoActive } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { ImageCarousel } from "@/components/ImageCarousel";
 
@@ -206,6 +206,13 @@ export default function CatalogoPublicoPage() {
                         </span>
                       </div>
                     )}
+                    {!work.sold && isPromoActive(work) && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-green-600/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-green-500/50">
+                          PROMO
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -221,9 +228,17 @@ export default function CatalogoPublicoPage() {
                       </span>
                       <span className="text-sm text-muted">{work.technique}</span>
                       <span className="text-sm text-muted">{work.size}</span>
-                      <span className={`text-sm font-bold ${work.sold ? "text-red-400" : "text-accent"}`}>
-                        {work.sold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}
-                      </span>
+                      {work.sold ? (
+                        <span className="text-sm font-bold text-red-400">Indisponivel</span>
+                      ) : isPromoActive(work) ? (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-muted line-through text-xs">{formatBRL(applyMarkup(work.value, markupPercentage))}</span>
+                          <span className="text-green-400 font-bold text-sm">{formatBRL(applyMarkup(work.promoPrice!, markupPercentage))}</span>
+                          <span className="text-xs text-muted">ate {new Date(work.promoUntil!).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm font-bold text-accent">{formatBRL(applyMarkup(work.value, markupPercentage))}</span>
+                      )}
                     </div>
                   </div>
                 </article>

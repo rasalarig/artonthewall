@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { formatBRL, getDisplayImageUrls, applyMarkup, handleImageError, getImagePosition } from "@/lib/catalog";
+import { formatBRL, getDisplayImageUrls, applyMarkup, handleImageError, getImagePosition, getCoverImageUrl, isPromoActive } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import type { Artist, Artwork } from "@/types";
 
@@ -268,13 +268,14 @@ function ArtistCard({ artist, index }: { artist: Artist; index: number }) {
             ? artist.works.find((w) => w.id === artist.coverWorkId)
             : null;
           const targetWork = coverWork || artist.works[0];
-          const firstImage = targetWork ? getDisplayImageUrls(targetWork)[0] : null;
+          const firstImage = targetWork ? getCoverImageUrl(targetWork) : null;
+          const coverIdx = targetWork?.coverImageIndex ?? 0;
           return firstImage ? (
             <img
               src={firstImage}
               alt={artist.name}
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: getImagePosition(targetWork, 0) }}
+              style={{ objectPosition: getImagePosition(targetWork, coverIdx) }}
               onError={handleImageError}
             />
           ) : null;
@@ -336,13 +337,14 @@ function WorkCard({
         style={{ background: artworkGradient(work.id) }}
       >
         {(() => {
-          const images = getDisplayImageUrls(work);
-          return images.length > 0 ? (
+          const coverImage = getCoverImageUrl(work);
+          const coverIdx = work.coverImageIndex ?? 0;
+          return coverImage ? (
             <img
-              src={images[0]}
+              src={coverImage}
               alt={work.title}
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: getImagePosition(work, 0) }}
+              style={{ objectPosition: getImagePosition(work, coverIdx) }}
               onError={handleImageError}
             />
           ) : null;
@@ -352,6 +354,14 @@ function WorkCard({
           <div className="absolute top-3 right-3 z-10">
             <span className="bg-red-700/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-red-600/50">
               Vendido
+            </span>
+          </div>
+        )}
+        {/* Promo badge */}
+        {!work.sold && isPromoActive(work) && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="bg-green-600/90 backdrop-blur-sm text-xs font-bold px-2.5 py-1 rounded-full text-white border border-green-500/50">
+              PROMO
             </span>
           </div>
         )}
@@ -367,7 +377,17 @@ function WorkCard({
           {work.title}
         </h4>
         <p className="text-sm text-muted truncate mb-2">{work.artistName}</p>
-        <p className={`text-sm font-bold ${work.sold ? "text-red-400" : "text-accent"}`}>{work.sold ? "Indisponivel" : formatBRL(applyMarkup(work.value, markupPercentage))}</p>
+        {work.sold ? (
+          <span className="text-red-400 font-bold text-sm">Indisponivel</span>
+        ) : isPromoActive(work) ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-muted line-through text-xs">{formatBRL(applyMarkup(work.value, markupPercentage))}</span>
+            <span className="text-green-400 font-bold text-sm">{formatBRL(applyMarkup(work.promoPrice!, markupPercentage))}</span>
+            <span className="text-xs text-muted">ate {new Date(work.promoUntil!).toLocaleDateString('pt-BR')}</span>
+          </div>
+        ) : (
+          <span className="text-accent font-bold text-sm">{formatBRL(applyMarkup(work.value, markupPercentage))}</span>
+        )}
       </div>
     </div>
   );
