@@ -10,7 +10,7 @@ import fs from "fs";
  */
 function optimizeCloudinaryUrl(url: string): string {
   if (url.includes("/image/upload/")) {
-    return url.replace("/image/upload/", "/image/upload/c_limit,w_300,q_40/");
+    return url.replace("/image/upload/", "/image/upload/c_limit,w_800,q_70/");
   }
   return url;
 }
@@ -99,13 +99,13 @@ export async function GET(req: NextRequest) {
 
     const totalWorks = artists.reduce((sum, a) => sum + a.works.length, 0);
 
-    // Resolve image URL — in production use Cloudinary URL directly
-    // (the user's browser loads them); locally use optimized URLs for Puppeteer
+    // Resolve image URL — always use optimized Cloudinary URLs for PDF
+    // (smaller files load faster in both Puppeteer and browser)
     function resolveImage(img: string): string {
       // Base64 data URIs work inline — return as-is
       if (img.startsWith("data:")) return img;
       const url = img.startsWith("http") ? img : `${origin}${img}`;
-      return isProduction ? url : optimizeCloudinaryUrl(url);
+      return optimizeCloudinaryUrl(url);
     }
 
     // Build TOC rows
@@ -484,27 +484,29 @@ export async function GET(req: NextRequest) {
 </body>
 </html>`;
 
-    // In production (Render): return HTML directly — user's browser renders
-    // images from Cloudinary and can print-to-PDF via window.print()
-    if (isProduction) {
-      const printHtml = html.replace(
-        "</body>",
-        '<script>window.onload=function(){window.print();};</script></body>',
-      );
-      return new NextResponse(printHtml, {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
-    }
-
-    // Local development: use Puppeteer for direct PDF download
+    // Both production and local: use Puppeteer for direct PDF download
     try {
       const browser = await launchBrowser();
       try {
         const page = await browser.newPage();
         await page.setContent(html, {
           waitUntil: "networkidle2",
-          timeout: 60000,
+          timeout: 120000,
         });
+
+        // Wait for ALL images to finish loading (or error) before generating PDF
+        await page.evaluate(() => {
+          return Promise.all(
+            Array.from(document.querySelectorAll('img')).map(img => {
+              if (img.complete) return Promise.resolve();
+              return new Promise<void>((resolve) => {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              });
+            })
+          );
+        });
+
         const pdfBuffer = await page.pdf({
           format: "A4",
           printBackground: true,
@@ -522,11 +524,24 @@ export async function GET(req: NextRequest) {
         await browser.close();
       }
     } catch (pdfError: any) {
-      console.error("Puppeteer PDF failed, falling back to HTML:", pdfError);
-      const printHtml = html.replace(
-        "</body>",
-        '<script>window.onload=function(){window.print();};</script></body>',
-      );
+      console.error("Puppeteer PDF failed, falling back to HTML print:", pdfError);
+      // Fallback: return HTML that waits for all images before calling window.print()
+      const waitForImagesScript = `<script>
+window.onload = function() {
+  var imgs = document.querySelectorAll('img');
+  var loaded = 0;
+  var total = imgs.length;
+  var printed = false;
+  function doPrint() { if (!printed) { printed = true; window.print(); } }
+  if (total === 0) { doPrint(); return; }
+  function check() { loaded++; if (loaded >= total) setTimeout(doPrint, 500); }
+  imgs.forEach(function(img) {
+    if (img.complete) { check(); } else { img.onload = check; img.onerror = check; }
+  });
+  setTimeout(doPrint, 15000);
+};
+</script>`;
+      const printHtml = html.replace("</body>", waitForImagesScript + "</body>");
       return new NextResponse(printHtml, {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });

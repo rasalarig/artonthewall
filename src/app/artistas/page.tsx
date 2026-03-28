@@ -5,7 +5,7 @@ import { mutate as globalMutate } from "swr";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCatalog } from "@/hooks/useCatalog";
-import { getDisplayImageUrls, formatBRL, applyMarkup, handleImageError, isPromoActive } from "@/lib/catalog";
+import { getDisplayImageUrls, formatBRL, applyMarkup, handleImageError, isPromoActive, getImagePosition } from "@/lib/catalog";
 import { Loading } from "@/components/Loading";
 import { Lightbox } from "@/components/ImageCarousel";
 import type { Artist, Artwork } from "@/types";
@@ -19,6 +19,8 @@ interface CarouselSlide {
   technique: string;
   value: number | null;
   sold: boolean;
+  imagePositions?: Record<string, { x: number; y: number }>;
+  imageIndex: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -67,6 +69,7 @@ function ArtistCardCarousel({ slides, markupPercentage }: { slides: CarouselSlid
               src={slide.image}
               alt={slide.title}
               className="h-full w-full flex-shrink-0 object-cover cursor-pointer"
+              style={{ objectPosition: getImagePosition({ imagePositions: slide.imagePositions }, slide.imageIndex) }}
               onClick={openLightbox}
               onError={handleImageError}
             />
@@ -148,13 +151,15 @@ function buildSlides(works: Artwork[], coverWorkId?: string): CarouselSlide[] {
     : works;
   for (const work of sorted) {
     const images = getDisplayImageUrls(work);
-    for (const image of images) {
+    for (let i = 0; i < images.length; i++) {
       slides.push({
-        image,
+        image: images[i],
         title: work.title,
         technique: work.technique,
         value: work.value,
         sold: work.sold ?? false,
+        imagePositions: work.imagePositions as Record<string, { x: number; y: number }> | undefined,
+        imageIndex: i,
       });
     }
   }
