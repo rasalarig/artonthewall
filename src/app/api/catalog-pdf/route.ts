@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
               const imagesHtml = images
                 .map((img) => {
                   const imgUrl = resolveImage(img);
-                  return `<img src="${imgUrl}" class="gallery-img" />`;
+                  return `<img src="${imgUrl}" class="gallery-img" onerror="this.style.display='none'" />`;
                 })
                 .join("\n");
 
@@ -498,13 +498,28 @@ export async function GET(req: NextRequest) {
         await page.evaluate(() => {
           return Promise.all(
             Array.from(document.querySelectorAll('img')).map(img => {
-              if (img.complete) return Promise.resolve();
+              if (img.complete) {
+                // Check if it loaded successfully
+                if (img.naturalWidth === 0) img.style.display = 'none';
+                return Promise.resolve();
+              }
               return new Promise<void>((resolve) => {
                 img.onload = () => resolve();
-                img.onerror = () => resolve();
+                img.onerror = () => { img.style.display = 'none'; resolve(); };
               });
             })
           );
+        });
+
+        // Hide gallery-figure containers where ALL images failed
+        await page.evaluate(() => {
+          document.querySelectorAll('.gallery-figure').forEach(fig => {
+            const imgs = fig.querySelectorAll('.gallery-img');
+            if (imgs.length > 0) {
+              const allHidden = Array.from(imgs).every(img => (img as HTMLImageElement).style.display === 'none');
+              if (allHidden) (fig as HTMLElement).style.display = 'none';
+            }
+          });
         });
 
         const pdfBuffer = await page.pdf({
@@ -536,7 +551,7 @@ window.onload = function() {
   if (total === 0) { doPrint(); return; }
   function check() { loaded++; if (loaded >= total) setTimeout(doPrint, 500); }
   imgs.forEach(function(img) {
-    if (img.complete) { check(); } else { img.onload = check; img.onerror = check; }
+    if (img.complete) { check(); } else { img.onload = check; img.onerror = function(){ this.style.display='none'; check(); }; }
   });
   setTimeout(doPrint, 15000);
 };
