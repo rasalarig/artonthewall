@@ -423,18 +423,29 @@ export default function ArtistDetailPage({
 
   async function saveArtistEdit() {
     if (!artist) return;
+
+    const finalChars = [...editChars];
+    const pendingTag = editTagInput.trim();
+    if (pendingTag && !finalChars.includes(pendingTag)) {
+      finalChars.push(pendingTag);
+    }
+
     const errs: Record<string, string> = {};
     if (!editName.trim()) errs.name = "Nome e obrigatorio";
-    if (editChars.length === 0) errs.characteristics = "Adicione pelo menos uma caracteristica";
+    if (finalChars.length === 0) errs.characteristics = "Adicione pelo menos uma caracteristica";
     if (Object.keys(errs).length > 0) {
       setEditArtistErrors(errs);
       return;
     }
+
+    setEditChars(finalChars);
+    setEditTagInput("");
+
     setSavingArtist(true);
     try {
       const result = await upsertArtist(artist.id, {
         name: editName.trim(),
-        characteristics: editChars,
+        characteristics: finalChars,
       });
       setEditingArtist(false);
       if (result.slug !== slug) {

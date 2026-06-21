@@ -75,12 +75,19 @@ function CadastrarContent() {
   /* ---- Artist submit ---- */
   async function handleArtistSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const finalCharacteristics = [...characteristics];
+    const pendingTag = tagInput.trim();
+    if (pendingTag && !finalCharacteristics.includes(pendingTag)) {
+      finalCharacteristics.push(pendingTag);
+    }
+
     const errors: Record<string, string> = {};
 
     if (!artistName.trim()) {
       errors.name = "Nome e obrigatorio";
     }
-    if (characteristics.length === 0) {
+    if (finalCharacteristics.length === 0) {
       errors.characteristics = "Adicione pelo menos uma caracteristica";
     }
 
@@ -89,11 +96,14 @@ function CadastrarContent() {
       return;
     }
 
+    setCharacteristics(finalCharacteristics);
+    setTagInput("");
+
     setArtistSubmitting(true);
     try {
       const result = await addArtist({
         name: artistName.trim(),
-        characteristics,
+        characteristics: finalCharacteristics,
       });
       setArtistSuccess(true);
       setArtistSubmitting(false);
